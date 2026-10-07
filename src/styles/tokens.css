@@ -1,0 +1,105 @@
+/*
+ * AksesKelas Architectural Design System Tokens
+ * Terinspirasi oleh estetika editorial, ketenangan Manus, dan aksesibilitas W3C/WCAG 2.2 AA.
+ * Mengutamakan keterbacaan, ritme tipografi, dan hierarki permukaan alami tanpa efek dekoratif artifisial.
+ */
+:root {
+  /* Permukaan & Latar Belakang (Hangat, Bersahabat, Tenang) */
+  --canvas: #f8f8f5;
+  --surface: #ffffff;
+  --surface-subtle: #f1f3ee;
+  --surface-inset: #e9ece6;
+  --surface-hover: #ebeee8;
+
+  /* Tipografi Tinta (Kontras tinggi, nyaman di mata) */
+  --text: #131715;
+  --muted-text: #53605a;
+  --subtle-text: #76847e;
+
+  /* Garis Pemisah & Kontrol */
+  --border: #e2e6df;
+  --border-subtle: #edf1ea;
+  --control-border: #64748b;
+  --control-border-hover: #334155;
+
+  /* Aksen Utama (Indigo Edukasi Modern & Bertenaga) */
+  --primary: #3b52d4;
+  --primary-hover: #2d3fa6;
+  --primary-subtle: #edf2ff;
+  --primary-border: #c7d5fa;
+  --on-primary: #ffffff;
+  --focus-ring: #3b52d4;
+
+  /* Palet Warna Ceria & Hangat (Guru & Murid) */
+  --coral: #ea580c;
+  --coral-hover: #c2410c;
+  --coral-subtle: #fff7ed;
+  --coral-border: #fed7aa;
+
+  --violet: #7c3aed;
+  --violet-hover: #6d28d9;
+  --violet-subtle: #f5f3ff;
+  --violet-border: #ddd6fe;
+
+  --emerald: #059669;
+  --emerald-hover: #047857;
+  --emerald-subtle: #ecfdf5;
+  --emerald-border: #a7f3d0;
+
+  --amber: #d97706;
+  --amber-subtle: #fffbeb;
+  --amber-border: #fde68a;
+
+  --sky: #0284c7;
+  --sky-subtle: #f0f9ff;
+  --sky-border: #bae6fd;
+
+  /* Lapisan Mode Akses (Aksen Fungsional Berlabel) */
+  --easy-bg: #ecfdf5;
+  --easy-text: #047857;
+  --easy-border: #a7f3d0;
+
+  --focus-bg: #edf2ff;
+  --focus-text: #2d3fa6;
+  --focus-border: #c7d5fa;
+
+  --listen-bg: #f5f3ff;
+  --listen-text: #6d28d9;
+  --listen-border: #ddd6fe;
+
+  /* Status */
+  --success: #059669;
+  --success-bg: #ecfdf5;
+  --warning: #d97706;
+  --warning-bg: #fffbeb;
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+
+  /* Ukuran Radius Terarah */
+  --radius-btn: 9px;
+  --radius-input: 9px;
+  --radius-card: 12px;
+  --radius-surface: 14px;
+  --radius-reader: 16px;
+  --radius-dialog: 16px;
+
+  /* Reader Tokens (Terisolasi dari Chrome Aplikasi) */
+  --reader-bg: #ffffff;
+  --reader-text: #131715;
+  --reader-muted: #53605a;
+  --reader-line: #e0e4df;
+}
+
+[data-reader-theme="sepia"] {
+  --reader-bg: #f9f2e4;
+  --reader-text: #2f271d;
+  --reader-muted: #6b5c49;
+  --reader-line: #e3d7bf;
+}
+
+[data-reader-theme="high-contrast"] {
+  --reader-bg: #ffffff;
+  --reader-text: #0a0c0b;
+  --reader-muted: #222825;
+  --reader-line: #0a0c0b;
+}

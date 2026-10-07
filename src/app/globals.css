@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-inset: var(--surface-inset);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-ink: var(--text);
+  --color-muted: var(--muted-text);
+  --color-subtle: var(--subtle-text);
+
+  --color-line: var(--border);
+  --color-line-subtle: var(--border-subtle);
+  --color-control: var(--control-border);
+  --color-control-hover: var(--control-border-hover);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-border: var(--primary-border);
+  --color-on-primary: var(--on-primary);
+  --color-focus: var(--focus-ring);
+
+  --color-easy: var(--easy-bg);
+  --color-easy-ink: var(--easy-text);
+  --color-easy-line: var(--easy-border);
+
+  --color-focusbg: var(--focus-bg);
+  --color-focus-ink: var(--focus-text);
+  --color-focus-line: var(--focus-border);
+
+  --color-listen: var(--listen-bg);
+  --color-listen-ink: var(--listen-text);
+  --color-listen-line: var(--listen-border);
+
+  --color-coral: var(--coral);
+  --color-coral-hover: var(--coral-hover);
+  --color-coral-subtle: var(--coral-subtle);
+  --color-coral-border: var(--coral-border);
+
+  --color-violet: var(--violet);
+  --color-violet-hover: var(--violet-hover);
+  --color-violet-subtle: var(--violet-subtle);
+  --color-violet-border: var(--violet-border);
+
+  --color-emerald: var(--emerald);
+  --color-emerald-hover: var(--emerald-hover);
+  --color-emerald-subtle: var(--emerald-subtle);
+  --color-emerald-border: var(--emerald-border);
+
+  --color-amber: var(--amber);
+  --color-amber-subtle: var(--amber-subtle);
+  --color-amber-border: var(--amber-border);
+
+  --color-sky: var(--sky);
+  --color-sky-subtle: var(--sky-subtle);
+  --color-sky-border: var(--sky-border);
+
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+
+  --font-sans: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  --font-heading: var(--font-heading, "Instrument Sans", "Inter", -apple-system, sans-serif);
+
+  --radius-btn: var(--radius-btn);
+  --radius-input: var(--radius-input);
+  --radius-card: var(--radius-card);
+  --radius-surface: var(--radius-surface);
+  --radius-reader: var(--radius-reader);
+  --radius-dialog: var(--radius-dialog);
+}
+
+html {
+  scroll-padding-top: 5rem;
+  background-color: var(--canvas);
+}
+
+body {
+  background-color: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.025em;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Aksesibilitas Fokus: terlihat tegas, berjarak 2px, warna indigo pekat */
+:focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2.5px;
+  border-radius: 4px;
+}
+
+/* Pemilihan teks */
+::selection {
+  background: #dce3fa;
+  color: #131715;
+}
+
+/* Reduced motion untuk menghormati preferensi aksesibilitas */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Paragraf bacaan yang tenang dan proporsional */
+.editorial-prose {
+  max-width: 62ch;
+  line-height: 1.75;
+  text-align: left;
+}
+
+/* Garis pembatas minimalis dengan kontras seimbang */
+.divider-subtle {
+  border-color: var(--border-subtle);
+}
