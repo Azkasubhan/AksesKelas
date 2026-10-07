@@ -1,5 +1,5 @@
 "use client";
-
+ 
 import * as React from "react";
 import { ShaderGradientCanvas, ShaderGradient } from "shadergradient";
 
@@ -29,7 +29,7 @@ export default function ShaderCanvasView() {
         bgColor2="#000000"
         brightness={1.2}
         cAzimuthAngle={180}
-        cDistance={4.5}
+        cDistance={2.9}
         cPolarAngle={120}
         cameraZoom={1}
         color1="#ebedff"
@@ -59,12 +59,11 @@ export default function ShaderCanvasView() {
         type="waterPlane"
         uAmplitude={0}
         uDensity={1}
-        uFrequency={3.5}
-        uSpeed={0.25}
-        uStrength={1.8}
-        uTime={0}
+        uFrequency={5.5}
+        uSpeed={0.3}
+        uStrength={3}
+        uTime={0.2}
         wireframe={false}
-        zoomOut={false}
       />
     </ShaderGradientCanvas>
   );

@@ -1,287 +1,134 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  ShieldCheck,
-  FileText,
-  UserCheck,
-  Sparkles,
-  BookOpen,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getCurrentSession } from "@/server/auth/session";
 import { AppHeader } from "@/components/layout/app-header";
 import { HeroShaderGradientBackground } from "@/components/marketing/hero-shader-gradient";
-import { HeroFloatingBadges } from "@/components/marketing/hero-floating-badges";
-import { ModernFeaturesSection } from "@/components/marketing/modern-features-section";
+import { HeroHeadline } from "@/components/marketing/hero-headline";
+import { ProductStage } from "@/components/marketing/product-stage";
+import { TeacherFlow } from "@/components/marketing/teacher-flow";
+import { MotionProvider, Reveal } from "@/components/marketing/motion-primitives";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
   title: "AksesKelas — Satu Materi Pelajaran. Bebas Dipahami Semua Murid.",
   description:
-    "Platform penyampaian materi kelas dengan akses belajar multi-moda yang ramah guru dan siswa: kartu fokus berurutan, bahasa sederhana, pengaturan tampilan, dan audio pendamping.",
+    "Platform penyampaian materi kelas dengan akses belajar yang dapat disesuaikan: kartu fokus berurutan, bahasa sederhana, pengaturan tampilan, dan audio pendamping.",
 };
 
 export default async function LandingPage() {
   const session = await getCurrentSession();
+  const dashboardHref = session?.user.role === "teacher" ? "/guru" : "/siswa";
 
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas text-ink overflow-x-hidden">
-      <AppHeader user={session?.user} csrfToken={session?.csrfToken} />
+    <MotionProvider>
+      <div className="flex min-h-dvh flex-col overflow-x-clip bg-canvas text-ink">
+        <AppHeader user={session?.user} csrfToken={session?.csrfToken} />
 
-      <main id="konten-utama" className="flex-1">
-        {/* ============================================================ */}
-        {/* HERO SECTION: Centered Big Text, Floating Badges, ShaderGradient */}
-        {/* ============================================================ */}
-        <section className="relative flex min-h-[85vh] flex-col items-center justify-center overflow-hidden px-5 py-20 text-center sm:px-8 sm:py-32">
-          {/* Latar Belakang 3D WebGL ShaderGradient Interaktif */}
-          <HeroShaderGradientBackground />
+        <main id="konten-utama" className="flex-1">
+          {/* Hero */}
+          <section className="relative flex min-h-[640px] sm:min-h-[720px] flex-col items-center justify-start px-5 pt-32 pb-24 text-center sm:px-8 sm:pt-40 sm:pb-32 lg:pt-44 lg:pb-36">
+            <HeroShaderGradientBackground />
 
-          <div className="relative z-10 mx-auto max-w-4xl">
-            {/* Kartu Mengambang Dinamis di Sekitar Hero (Gaya Teman Akun) */}
-            <HeroFloatingBadges />
+            <div className="relative z-10 mx-auto max-w-4xl">
+              <HeroHeadline className="font-heading text-[2.6rem] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-6xl lg:text-7xl" />
 
-            {/* Pill Atas Ceria */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary-border/60 bg-surface/80 px-4 py-1.5 text-xs font-semibold text-primary backdrop-blur-md shadow-sm">
-              <span className="size-2 rounded-full bg-emerald animate-pulse" />
-              <span>Platform Pembelajaran Multi-Moda untuk Guru & Siswa</span>
+              <Reveal delay={1.05} y={16}>
+                <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-ink/80 sm:text-xl font-normal">
+                  Ubah teks buku atau lembar PDF menjadi kartu bacaan fokus berurutan, kalimat yang mudah dipahami, dan suara pendamping.
+                </p>
+              </Reveal>
+
+              <Reveal delay={1.22} y={16}>
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                  {session?.user ? (
+                    <Button variant="coral" size="lg" className="h-12 px-7 text-base shadow-lg shadow-coral/25" asChild>
+                      <Link href={dashboardHref}>
+                        <span>Buka Ruang {session.user.role === "teacher" ? "Guru" : "Siswa"}</span>
+                        <ArrowRight className="size-4" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="coral" size="lg" className="h-12 px-7 text-base shadow-lg shadow-coral/25" asChild>
+                        <Link href="/signup">
+                          <span>Mulai Buat Materi</span>
+                          <ArrowRight className="size-4" aria-hidden="true" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="lg"
+                        className="h-12 px-7 text-base font-medium text-ink bg-white/60 hover:bg-white/85 border border-white/80 shadow-xs backdrop-blur-md rounded-btn transition-all duration-150"
+                        asChild
+                      >
+                        <Link href="/login">Masuk sebagai Guru</Link>
+                      </Button>
+                    </>
+                  )}
+                </div>
+                <p className="mt-6 text-sm text-ink/65 font-medium">
+                  Hasil AI selalu berstatus draf sampai disetujui guru.
+                </p>
+              </Reveal>
             </div>
+          </section>
 
-            {/* Headline Utama: Big Text dengan Aksen Warna Hidup */}
-            <h1 className="mt-6 font-heading text-4xl font-extrabold tracking-tight text-ink sm:text-6xl sm:leading-[1.12] lg:text-7xl">
-              Satu materi pelajaran,
-              <br />
-              <span className="bg-gradient-to-r from-primary via-indigo-600 to-violet bg-clip-text text-transparent">
-                bebas dipahami{" "}
-              </span>
-              <span className="relative inline-block bg-gradient-to-r from-coral to-amber bg-clip-text text-transparent">
-                semua murid
-                {/* SVG Garis Lengkung Artistik Bawah Teks */}
-                <svg
-                  className="absolute -bottom-2 left-0 w-full text-coral opacity-80"
-                  viewBox="0 0 250 12"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M3 9C60 2 190 2 247 9"
-                    stroke="currentColor"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </h1>
+          <ProductStage />
+          <TeacherFlow />
 
-            {/* Paragraf Pendukung yang Ringan & Hangat */}
-            <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-muted sm:text-xl">
-              Ubah teks buku atau lembar PDF menjadi kartu bacaan fokus berurutan, kalimat ramah anak, dan suara pendamping tanpa membuat murid merasa dibeda-bedakan.
-            </p>
-
-            {/* Cluster Tombol Aksi Utama (Tengah) */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3.5">
-              {session?.user ? (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="h-12 bg-coral hover:bg-coral-hover text-white px-7 shadow-lg shadow-coral/25 font-semibold text-base transition-all hover:scale-105"
-                  asChild
-                >
-                  <Link href={session.user.role === "teacher" ? "/guru" : "/siswa"}>
-                    <span>Buka Ruang {session.user.role === "teacher" ? "Guru" : "Siswa"}</span>
-                    <ArrowRight className="size-4.5" />
-                  </Link>
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="h-12 bg-coral hover:bg-coral-hover text-white px-7 shadow-lg shadow-coral/25 font-semibold text-base transition-all hover:scale-105"
-                    asChild
-                  >
+          {/* Closing call to action */}
+          <section className="px-5 pb-24 sm:px-8 sm:pb-32">
+            <Reveal className="mx-auto max-w-6xl">
+              <div className="rounded-[20px] bg-primary px-7 py-14 text-white sm:px-14 sm:py-20">
+                <h2 className="max-w-2xl font-heading text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
+                  Mulai dari satu materi untuk kelas Anda.
+                </h2>
+                <p className="mt-4 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
+                  Daftar sebagai guru untuk mengunggah materi pertama, atau masuk sebagai murid dengan kode kelas dari guru.
+                </p>
+                <div className="mt-9 flex flex-wrap items-center gap-3">
+                  <Button variant="coral" size="lg" className="h-12 px-7 text-base" asChild>
                     <Link href="/signup">
-                      <span>Mulai Buat Materi</span>
-                      <ArrowRight className="size-4.5" />
+                      <span>Daftar Akun</span>
+                      <ArrowRight className="size-4" aria-hidden="true" />
                     </Link>
                   </Button>
                   <Button
-                    variant="secondary"
+                    variant="ghost"
                     size="lg"
-                    className="h-12 border-line bg-surface/80 hover:bg-surface px-6 font-semibold text-base backdrop-blur-md transition-all hover:scale-105"
+                    className="h-12 px-6 text-base text-white hover:bg-white/10 hover:text-white"
                     asChild
                   >
-                    <Link href="/login">
-                      <span>Masuk sebagai Guru</span>
-                    </Link>
+                    <Link href="/login">Masuk</Link>
                   </Button>
-                </>
-              )}
-            </div>
-
-            {/* Baris Garansi Kredibilitas Produk */}
-            <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-muted">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="size-4 text-emerald" />
-                100% Hasil AI Wajib Disetujui Guru
-              </span>
-              <span className="hidden sm:inline text-line">•</span>
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="size-4 text-amber" />
-                Bebas Pelabelan Disabilitas Murid
-              </span>
-              <span className="hidden sm:inline text-line">•</span>
-              <span className="flex items-center gap-1.5">
-                <BookOpen className="size-4 text-primary" />
-                Terverifikasi Kurikulum Resmi
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* SECTION: Keunggulan Modern AksesKelas (Interaktif & Bertenaga) */}
-        {/* ============================================================ */}
-        <ModernFeaturesSection />
-
-        {/* ============================================================ */}
-        {/* SECTION: Tiga Langkah Guru (Alur Nyata Human-in-the-Loop)       */}
-        {/* ============================================================ */}
-        <section id="cara-kerja" className="border-t border-line bg-surface/60 py-24 sm:py-32">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <span className="text-xs font-bold uppercase tracking-widest text-primary">
-                Alur Kerja Pengajar
-              </span>
-              <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-                Tiga Langkah Mudah Menghadirkan Materi Ramah Siswa
-              </h2>
-              <p className="mt-3 text-base text-muted">
-                Guru memegang kuasa penuh sejak awal. AI membantu mempercepat draf adaptasi, namun publikasi sepenuhnya ada di tangan guru.
-              </p>
-            </div>
-
-            <div className="mt-16 grid gap-8 md:grid-cols-3">
-              {/* Langkah 1 */}
-              <div className="group relative rounded-2xl border border-line bg-surface p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                <div className="flex size-12 items-center justify-center rounded-xl bg-primary-subtle text-primary font-heading text-xl font-bold">
-                  01
-                </div>
-                <h3 className="mt-5 font-heading text-xl font-bold text-ink">
-                  Unggah PDF atau Teks
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
-                  Masukkan file materi pelajaran yang biasa Anda ajarkan. Sistem mengekstrak teks menjadi blok sumber berurutan yang terlacak nomor halamannya.
-                </p>
-                <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-primary">
-                  <FileText className="size-4" />
-                  <span>Ekstraksi Dokumen Instan</span>
                 </div>
               </div>
+            </Reveal>
+          </section>
+        </main>
 
-              {/* Langkah 2 */}
-              <div className="group relative rounded-2xl border border-line bg-surface p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                <div className="flex size-12 items-center justify-center rounded-xl bg-emerald-subtle text-emerald font-heading text-xl font-bold">
-                  02
-                </div>
-                <h3 className="mt-5 font-heading text-xl font-bold text-ink">
-                  Telaah & Edit Berdampingan
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
-                  Bandingkan teks asli dengan hasil adaptasi Focus Cards dan Easy Read. Guru bebas menyunting kata, menambahkan catatan, atau menolak draf.
-                </p>
-                <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-emerald">
-                  <UserCheck className="size-4" />
-                  <span>Pintu Persetujuan Guru</span>
-                </div>
-              </div>
-
-              {/* Langkah 3 */}
-              <div className="group relative rounded-2xl border border-line bg-surface p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                <div className="flex size-12 items-center justify-center rounded-xl bg-coral-subtle text-coral font-heading text-xl font-bold">
-                  03
-                </div>
-                <h3 className="mt-5 font-heading text-xl font-bold text-ink">
-                  Terbitkan Snapshot ke Kelas
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
-                  Bagikan kode kelas kepada murid. Setiap murid bebas memilih format membaca yang paling nyaman bagi mereka secara mandiri dan aman.
-                </p>
-                <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-coral">
-                  <ShieldCheck className="size-4" />
-                  <span>Snapshot Publikasi Abadi</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* CTA BANNER: Hangat, Bertenaga & Mengundang                    */}
-        {/* ============================================================ */}
-        <section className="relative overflow-hidden border-t border-line bg-gradient-to-b from-surface to-primary-subtle/30 py-20 sm:py-28">
-          <div className="mx-auto max-w-4xl px-5 text-center sm:px-8">
-            <span className="inline-flex items-center gap-1 rounded-full bg-coral-subtle px-3 py-1 text-xs font-bold text-coral">
-              Siap Memulai?
-            </span>
-            <h2 className="mt-4 font-heading text-3xl font-bold tracking-tight text-ink sm:text-5xl">
-              Hadirkan Pengalaman Belajar yang Nyaman untuk Seluruh Siswa Anda
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-base text-muted sm:text-lg">
-              Daftar sebagai guru pengajar untuk mulai mengunggah materi pertama Anda, atau masuk dengan akun murid untuk mulai membaca.
+        <footer className="px-5 pb-10 text-sm text-ink/60 sm:px-8">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 sm:flex-row">
+            <p>
+              <span className="font-heading font-bold text-ink">AksesKelas</span> · Satu materi, banyak cara memahami.
             </p>
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
-              <Button
-                variant="primary"
-                size="lg"
-                className="h-12 bg-coral hover:bg-coral-hover text-white px-7 shadow-lg shadow-coral/25 font-semibold text-base transition-all hover:scale-105"
-                asChild
-              >
-                <Link href="/signup">
-                  <span>Daftar Akun AksesKelas</span>
-                  <ArrowRight className="size-4.5" />
-                </Link>
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-12 border-line bg-surface px-6 font-semibold text-base transition-all hover:scale-105"
-                asChild
-              >
-                <Link href="/login">
-                  <span>Masuk ke Akun</span>
-                </Link>
-              </Button>
-            </div>
+            <nav aria-label="Tautan footer" className="flex items-center gap-6">
+              <a href="#keunggulan" className="transition-colors hover:text-ink">
+                Lapisan Membaca
+              </a>
+              <a href="#cara-kerja" className="transition-colors hover:text-ink">
+                Cara Kerja
+              </a>
+              <Link href="/login" className="transition-colors hover:text-ink">
+                Masuk
+              </Link>
+              <Link href="/signup" className="transition-colors hover:text-ink">
+                Daftar
+              </Link>
+            </nav>
           </div>
-        </section>
-      </main>
-
-      {/* ============================================================ */}
-      {/* FOOTER: Bersih, Ceria & Kredibel                             */}
-      {/* ============================================================ */}
-      <footer className="border-t border-line bg-surface py-12 text-xs text-muted">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-5 sm:flex-row sm:px-8">
-          <div className="flex flex-col items-center gap-1 sm:items-start">
-            <p className="font-heading text-sm font-bold text-ink">AksesKelas</p>
-            <p>© 2026 AksesKelas. Platform pembelajaran kelas dengan akses multi-moda inklusif.</p>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <a href="#keunggulan" className="transition-colors hover:text-ink">
-              Keunggulan
-            </a>
-            <a href="#cara-kerja" className="transition-colors hover:text-ink">
-              Cara Kerja
-            </a>
-            <Link href="/login" className="transition-colors hover:text-ink">
-              Masuk
-            </Link>
-            <Link href="/signup" className="transition-colors hover:text-ink">
-              Daftar
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </MotionProvider>
   );
 }

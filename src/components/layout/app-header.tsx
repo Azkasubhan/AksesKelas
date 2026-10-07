@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, BookOpen, Users } from "lucide-react";
@@ -30,8 +31,8 @@ export function AppHeader({ user, csrfToken }: AppHeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-line bg-canvas/90 backdrop-blur-md transition-all">
-      <div className="mx-auto flex h-15 max-w-6xl items-center justify-between px-5 sm:px-8">
+    <header className="fixed top-0 inset-x-0 z-50 w-full bg-white/45 backdrop-blur-md border-b border-transparent shadow-[0_2px_12px_rgba(0,0,0,0.02)] transition-all duration-200">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
         <div className="flex items-center gap-8">
           <Wordmark href={user ? (user.role === "teacher" ? "/guru" : "/siswa") : "/"} />
 
@@ -65,22 +66,7 @@ export function AppHeader({ user, csrfToken }: AppHeaderProps) {
                 </>
               )}
             </nav>
-          ) : (
-            <nav aria-label="Navigasi Publik" className="hidden items-center gap-6 md:flex">
-              <a
-                href="#keunggulan"
-                className="text-sm font-semibold text-muted transition-colors hover:text-ink"
-              >
-                Keunggulan
-              </a>
-              <a
-                href="#cara-kerja"
-                className="text-sm font-semibold text-muted transition-colors hover:text-ink"
-              >
-                Cara Kerja
-              </a>
-            </nav>
-          )}
+          ) : null}
         </div>
 
         <div className="flex items-center gap-3">
