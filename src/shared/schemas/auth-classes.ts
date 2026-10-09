@@ -47,8 +47,12 @@ export const joinClassSchema = z.object({
     .string()
     .trim()
     .min(1, "Masukkan kode kelas")
-    .max(32)
-    .transform((v) => v.replace(/[\s-]/g, "").toUpperCase()),
+    .max(32, "Kode kelas terlalu panjang")
+    .transform((v) => v.replace(/[\s-]/g, "").toUpperCase())
+    .refine(
+      (v) => /^[A-Z0-9]{12}$/.test(v),
+      "Kode kelas harus terdiri dari 12 karakter alfanumerik (contoh: ZDNQ-GEZH-31JA)",
+    ),
 });
 
 export type SignupInput = z.input<typeof signupSchema>;

@@ -11,6 +11,8 @@ import { Alert } from "@/components/ui/badge";
 import { Wordmark } from "@/components/layout/wordmark";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { safeNextPath } from "@/shared/paths";
+import { signupSchema } from "@/shared/schemas/auth-classes";
+import { validateWithSchema } from "@/lib/validation";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -26,9 +28,24 @@ export default function SignupPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setGeneralError(null);
     setFieldErrors({});
+
+    // Validasi skema di sisi klien sebelum memanggil server
+    const validation = validateWithSchema(signupSchema, {
+      displayName,
+      email,
+      password,
+      role,
+    });
+
+    if (!validation.success) {
+      setFieldErrors(validation.fieldErrors);
+      setGeneralError(validation.generalError);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await apiFetch<{ role: "teacher" | "student"; redirectTo: string }>(

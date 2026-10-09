@@ -31,7 +31,7 @@ export function AppHeader({ user, csrfToken }: AppHeaderProps) {
   }
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 w-full bg-white/45 backdrop-blur-md border-b border-transparent shadow-[0_2px_12px_rgba(0,0,0,0.02)] transition-all duration-200">
+    <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.02)] transition-all duration-200">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
         <div className="flex items-center gap-8">
           <Wordmark href={user ? (user.role === "teacher" ? "/guru" : "/siswa") : "/"} />

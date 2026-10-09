@@ -26,7 +26,7 @@ export default async function LandingPage() {
 
         <main id="konten-utama" className="flex-1">
           {/* Hero */}
-          <section className="relative flex min-h-[640px] sm:min-h-[720px] flex-col items-center justify-start px-5 pt-32 pb-24 text-center sm:px-8 sm:pt-40 sm:pb-32 lg:pt-44 lg:pb-36">
+          <section className="relative flex min-h-[600px] sm:min-h-[680px] flex-col items-center justify-start px-5 pt-16 pb-24 text-center sm:px-8 sm:pt-24 sm:pb-32 lg:pt-28 lg:pb-36">
             <HeroShaderGradientBackground />
 
             <div className="relative z-10 mx-auto max-w-4xl">

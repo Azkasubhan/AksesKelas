@@ -9,6 +9,8 @@ import { Field } from "@/components/ui/field";
 import { Alert } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { apiFetch, ApiError } from "@/lib/api-client";
+import { createClassSchema } from "@/shared/schemas/auth-classes";
+import { validateWithSchema } from "@/lib/validation";
 
 export function CreateClassDialog({ csrfToken }: { csrfToken: string }) {
   const router = useRouter();
@@ -21,9 +23,22 @@ export function CreateClassDialog({ csrfToken }: { csrfToken: string }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setGeneralError(null);
     setFieldErrors({});
+
+    // Validasi skema di sisi klien
+    const validation = validateWithSchema(createClassSchema, {
+      name,
+      description: description.trim() || undefined,
+    });
+
+    if (!validation.success) {
+      setFieldErrors(validation.fieldErrors);
+      setGeneralError(validation.generalError);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       await apiFetch<{ id: string }>("/classes", {

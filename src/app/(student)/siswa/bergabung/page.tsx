@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { Alert } from "@/components/ui/badge";
 import { apiFetch, ApiError } from "@/lib/api-client";
+import { joinClassSchema } from "@/shared/schemas/auth-classes";
+import { validateWithSchema } from "@/lib/validation";
 
 export default function StudentJoinClassPage() {
   const router = useRouter();
@@ -20,9 +22,18 @@ export default function StudentJoinClassPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setGeneralError(null);
     setFieldErrors({});
+
+    // Validasi skema di sisi klien
+    const validation = validateWithSchema(joinClassSchema, { code });
+    if (!validation.success) {
+      setFieldErrors(validation.fieldErrors);
+      setGeneralError(validation.generalError);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await apiFetch<{ id: string; name: string }>("/classes/join", {
