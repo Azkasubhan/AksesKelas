@@ -1,5 +1,5 @@
 import "server-only";
-import { randomInt, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
@@ -16,18 +16,9 @@ import {
   type CreateClassInput,
   type JoinClassInput,
 } from "@/shared/schemas/auth-classes";
+import { generateJoinCode } from "@/shared/join-codes";
 
-export { formatJoinCode };
-
-/** Alfabet base32 Crockford (tanpa I, L, O, U) agar kode mudah dibaca. */
-const CODE_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-const CODE_LENGTH = 12; // 60 bit entropi; PRD mensyaratkan minimal 10 karakter.
-
-export function generateJoinCode(): string {
-  let code = "";
-  for (let i = 0; i < CODE_LENGTH; i++) code += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
-  return code;
-}
+export { formatJoinCode, generateJoinCode };
 
 const uuidSchema = z.uuid();
 function assertUuid(id: string) {

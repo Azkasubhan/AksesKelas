@@ -14,12 +14,14 @@ export class AppError extends Error {
 export const Errors = {
   unauthenticated: () =>
     new AppError("UNAUTHENTICATED", 401, "Sesi berakhir. Silakan masuk lagi."),
-  forbidden: () =>
-    new AppError("FORBIDDEN", 403, "Akun ini tidak memiliki akses untuk tindakan tersebut."),
-  notFound: () =>
-    new AppError("NOT_FOUND_OR_FORBIDDEN", 404, "Data tidak tersedia untuk akun ini."),
+  forbidden: (message = "Akun ini tidak memiliki akses untuk tindakan tersebut.") =>
+    new AppError("FORBIDDEN", 403, message),
+  notFound: (message = "Data tidak tersedia untuk akun ini.") =>
+    new AppError("NOT_FOUND_OR_FORBIDDEN", 404, message),
   badRequest: (message = "Permintaan tidak dapat dibaca.") =>
     new AppError("BAD_REQUEST", 400, message),
+  unprocessable: (message = "Data tidak dapat diproses.") =>
+    new AppError("UNPROCESSABLE_ENTITY", 422, message),
   validation: (fieldErrors: Record<string, string>, message = "Periksa kembali isian Anda.") =>
     new AppError("VALIDATION_FAILED", 422, message, fieldErrors),
   rateLimited: (retryAfterSeconds: number) =>

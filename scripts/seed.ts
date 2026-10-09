@@ -10,7 +10,8 @@ import { z } from "zod";
 import { getDb, getPool } from "../src/server/db/client";
 import { classMemberships, classes, readingPreferences, users } from "../src/server/db/schema";
 import { hashPassword } from "../src/server/auth/password";
-import { generateJoinCode, formatJoinCode } from "../src/server/services/classes.service";
+import { formatJoinCode } from "../src/shared/schemas/auth-classes";
+import { generateJoinCode } from "../src/shared/join-codes";
 
 /**
  * Seed idempotent (PRD FR-09): Bu Rani, Raka/Sinta/Budi, kelas IPA VIII A.

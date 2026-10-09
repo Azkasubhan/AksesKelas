@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronRight, Plus, Users, BookOpen, Clock, FileText } from "lucide-react";
 import { requireRole } from "@/server/auth/guards";
 import { getClassForUser, listMembers } from "@/server/services/classes.service";
+import { listMaterialsForClass } from "@/server/services/materials.service";
 import { AppHeader } from "@/components/layout/app-header";
 import { JoinCodePanel } from "@/components/teacher/join-code-panel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -19,10 +20,12 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
   let cls;
   let members;
+  let materialsList;
   try {
     cls = await getClassForUser(session.user, classId);
     if (!cls.isOwner) notFound();
     members = await listMembers(session.user, classId);
+    materialsList = await listMaterialsForClass(session.user.id, session.user.role, classId);
   } catch {
     notFound();
   }
@@ -98,25 +101,78 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
             </TabsList>
 
             <TabsContent value="materi">
-              <div className="rounded-surface border border-line bg-surface p-12 text-center">
-                <div className="mx-auto flex size-12 items-center justify-center rounded-btn bg-surface-subtle text-muted">
-                  <FileText className="size-6" aria-hidden="true" />
+              {!materialsList || materialsList.length === 0 ? (
+                <div className="rounded-surface border border-line bg-surface p-12 text-center">
+                  <div className="mx-auto flex size-12 items-center justify-center rounded-btn bg-surface-subtle text-muted">
+                    <FileText className="size-6" aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-4 font-heading text-lg font-bold text-ink">
+                    Belum Ada Materi Pelajaran
+                  </h3>
+                  <p className="mx-auto mt-1.5 max-w-md text-sm text-muted">
+                    Unggah dokumen PDF atau tempel teks materi. Anda dapat meninjau dan mengedit adaptasi multi-modal sebelum menerbitkannya ke murid.
+                  </p>
+                  <div className="mt-6">
+                    <Button variant="primary" size="md" asChild>
+                      <Link href={`/guru/kelas/${classId}/materi/baru`}>
+                        <Plus className="size-4" aria-hidden="true" />
+                        <span>Tambah Materi Sekarang</span>
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
-                <h3 className="mt-4 font-heading text-lg font-bold text-ink">
-                  Belum Ada Materi Pelajaran
-                </h3>
-                <p className="mx-auto mt-1.5 max-w-md text-sm text-muted">
-                  Unggah dokumen PDF atau tempel teks materi. Anda dapat meninjau dan mengedit adaptasi multi-modal sebelum menerbitkannya ke murid.
-                </p>
-                <div className="mt-6">
-                  <Button variant="primary" size="md" asChild>
-                    <Link href={`/guru/kelas/${classId}/materi/baru`}>
-                      <Plus className="size-4" aria-hidden="true" />
-                      <span>Tambah Materi Sekarang</span>
-                    </Link>
-                  </Button>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {materialsList.map((mat) => (
+                    <div
+                      key={mat.id}
+                      className="flex flex-col justify-between gap-4 rounded-surface border border-line bg-surface p-5 transition-shadow hover:shadow-sm sm:flex-row sm:items-center sm:p-6"
+                    >
+                      <div className="flex items-start gap-3.5">
+                        <div className="flex size-11 shrink-0 items-center justify-center rounded-btn bg-primary-subtle text-primary mt-0.5">
+                          <BookOpen className="size-5" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-semibold text-muted">
+                              {mat.subject}
+                            </span>
+                            {mat.isPublished ? (
+                              <span className="rounded-md bg-emerald-subtle px-2 py-0.5 text-xs font-semibold text-emerald">
+                                Terbit untuk Murid
+                              </span>
+                            ) : (
+                              <span className="rounded-md bg-amber-subtle px-2 py-0.5 text-xs font-semibold text-amber">
+                                Draf Tersimpan
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="mt-1.5 font-heading text-lg font-bold text-ink">
+                            {mat.title}
+                          </h3>
+                          {mat.description ? (
+                            <p className="mt-1 text-sm text-muted line-clamp-1">
+                              {mat.description}
+                            </p>
+                          ) : null}
+                          <p className="mt-2 text-xs text-muted">
+                            Dibuat pada {formatDate(mat.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 flex items-center gap-2">
+                        <Button variant="secondary" size="sm" asChild>
+                          <Link href={`/guru/kelas/${classId}/materi/baru`}>
+                            <span>Draf Materi</span>
+                            <ChevronRight className="size-4" aria-hidden="true" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
             </TabsContent>
 
             <TabsContent value="anggota">

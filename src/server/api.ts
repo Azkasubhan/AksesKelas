@@ -66,7 +66,29 @@ export function clientIp(req: NextRequest): string {
 
 function checkOrigin(req: NextRequest) {
   const origin = req.headers.get("origin");
-  if (!origin || origin !== appOrigin()) throw Errors.csrf();
+  if (!origin) throw Errors.csrf();
+  const configured = appOrigin();
+  if (origin === configured) return;
+
+  // Dalam mode development, toleransi perbedaan penulisan localhost vs 127.0.0.1 pada port yang sama
+  if (getEnv().NODE_ENV === "development") {
+    try {
+      const origUrl = new URL(origin);
+      const confUrl = new URL(configured);
+      const isLoopbackOrig = origUrl.hostname === "localhost" || origUrl.hostname === "127.0.0.1";
+      const isLoopbackConf = confUrl.hostname === "localhost" || confUrl.hostname === "127.0.0.1";
+      if (
+        isLoopbackOrig &&
+        isLoopbackConf &&
+        origUrl.port === confUrl.port &&
+        origUrl.protocol === confUrl.protocol
+      ) {
+        return;
+      }
+    } catch {}
+  }
+
+  throw Errors.csrf();
 }
 
 export interface RouteContext<P> {

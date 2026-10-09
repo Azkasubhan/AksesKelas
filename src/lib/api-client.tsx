@@ -15,11 +15,44 @@ export class ApiError extends Error {
   }
 }
 
+let activeCsrfToken = "";
+
+export function setCsrfToken(token: string) {
+  activeCsrfToken = token;
+  if (typeof window !== "undefined") {
+    (window as unknown as { __AK_CSRF__?: string }).__AK_CSRF__ = token;
+  }
+}
+
+export function getCsrfToken(): string {
+  if (activeCsrfToken) return activeCsrfToken;
+  if (typeof window !== "undefined") {
+    const winToken = (window as unknown as { __AK_CSRF__?: string }).__AK_CSRF__;
+    if (winToken) {
+      activeCsrfToken = winToken;
+      return winToken;
+    }
+  }
+  if (typeof document !== "undefined") {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) {
+      const val = meta.getAttribute("content");
+      if (val) {
+        activeCsrfToken = val;
+        return val;
+      }
+    }
+  }
+  return "";
+}
+
 export async function apiFetch<T = unknown>(
   path: string,
   opts: { method?: "GET" | "POST" | "PATCH" | "PUT"; body?: unknown; csrfToken?: string } = {},
 ): Promise<T> {
   const method = opts.method ?? "GET";
+  const csrf = opts.csrfToken || (method !== "GET" ? getCsrfToken() : undefined);
+
   let res: Response;
   try {
     res = await fetch(`/api/v1${path}`, {
@@ -27,7 +60,7 @@ export async function apiFetch<T = unknown>(
       credentials: "same-origin",
       headers: {
         ...(opts.body !== undefined ? { "Content-Type": "application/json" } : {}),
-        ...(opts.csrfToken ? { "x-csrf-token": opts.csrfToken } : {}),
+        ...(csrf ? { "x-csrf-token": csrf } : {}),
       },
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
     });
@@ -62,9 +95,25 @@ export function CsrfProvider({
   token: string;
   children: React.ReactNode;
 }) {
-  return <CsrfContext.Provider value={token}>{children}</CsrfContext.Provider>;
+  if (token) {
+    setCsrfToken(token);
+  }
+
+  React.useEffect(() => {
+    if (token) {
+      setCsrfToken(token);
+    }
+  }, [token]);
+
+  return (
+    <CsrfContext.Provider value={token}>
+      {token ? <meta name="csrf-token" content={token} /> : null}
+      {children}
+    </CsrfContext.Provider>
+  );
 }
 
 export function useCsrf(): string {
-  return React.useContext(CsrfContext);
+  const ctx = React.useContext(CsrfContext);
+  return ctx || getCsrfToken();
 }

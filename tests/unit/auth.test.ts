@@ -37,6 +37,8 @@ describe("Session and CSRF tokens", () => {
     expect(verifyCsrfToken(sessionId, csrf)).toBe(true);
     expect(verifyCsrfToken("different_sess", csrf)).toBe(false);
     expect(verifyCsrfToken(sessionId, "invalid_csrf")).toBe(false);
+    expect(verifyCsrfToken(sessionId, null)).toBe(false);
+    expect(verifyCsrfToken(sessionId, "")).toBe(false);
   });
 });
 
