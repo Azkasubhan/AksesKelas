@@ -13,6 +13,9 @@ describe("PostgreSQL Integration: Auth & Class Membership Flow", () => {
   let createdClassId: string;
   let joinCode: string;
 
+  const ip1 = `10.20.1.${Math.floor(Math.random() * 250) + 1}`;
+  const ip2 = `10.20.2.${Math.floor(Math.random() * 250) + 1}`;
+
   it("registers teacher and student into PostgreSQL", async () => {
     const teacher = await signupUser(
       {
@@ -21,7 +24,7 @@ describe("PostgreSQL Integration: Auth & Class Membership Flow", () => {
         password,
         role: "teacher",
       },
-      "127.0.0.1",
+      ip1,
     );
     teacherId = teacher.id;
     expect(teacher.role).toBe("teacher");
@@ -33,7 +36,7 @@ describe("PostgreSQL Integration: Auth & Class Membership Flow", () => {
         password,
         role: "student",
       },
-      "127.0.0.1",
+      ip2,
     );
     studentId = student.id;
     expect(student.role).toBe("student");

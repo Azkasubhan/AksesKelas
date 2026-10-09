@@ -17,6 +17,7 @@ import {
   extractTextSource,
   type ExtractionResult,
 } from "@/server/extraction/source-blocks";
+import { buildInitialAdaptation } from "@/server/extraction/adaptation-fixture";
 import type { SessionUser } from "@/server/auth/session";
 import type {
   CreateMaterialInput,
@@ -121,27 +122,15 @@ export async function createMaterial(
 
     await tx.insert(sourceBlocks).values(blockValues);
 
-    // 3d. Inisialisasi draft awal (status: review)
+    // 3d. Inisialisasi draft awal multi-modal (status: review)
+    const initialDraftContent = buildInitialAdaptation(input.title, blockValues);
     await tx.insert(lessonDrafts).values({
       id: draftId,
       materialId,
       sourceRevisionId,
       revision: 1,
       status: "review",
-      content: {
-        sections: [
-          {
-            key: "sec_1",
-            title: input.title,
-            sourceRefs: blockValues.slice(0, 5).map((bv) => bv.id),
-            standard: blockValues.map((bv) => ({ text: bv.text, sourceRefs: [bv.id] })),
-            easyRead: [],
-            cards: [],
-            glossary: [],
-            warnings: [],
-          },
-        ],
-      },
+      content: initialDraftContent,
       approvals: {},
       promptVersion: "1.0",
       schemaVersion: "1.0",

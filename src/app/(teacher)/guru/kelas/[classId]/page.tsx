@@ -162,9 +162,9 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
                       </div>
 
                       <div className="shrink-0 flex items-center gap-2">
-                        <Button variant="secondary" size="sm" asChild>
-                          <Link href={`/guru/kelas/${classId}/materi/baru`}>
-                            <span>Draf Materi</span>
+                        <Button variant={mat.isPublished ? "secondary" : "primary"} size="sm" asChild>
+                          <Link href={`/guru/materi/${mat.id}`}>
+                            <span>{mat.isPublished ? "Lihat & Edit" : "Tinjau Draf"}</span>
                             <ChevronRight className="size-4" aria-hidden="true" />
                           </Link>
                         </Button>
