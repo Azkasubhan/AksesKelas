@@ -22,7 +22,7 @@ describe("PostgreSQL Integration: Milestone 4 AI Adaptation Pipeline & Jobs", ()
       { displayName: "Guru IPA AI Test", email: teacherEmail, password, role: "teacher" },
       testIp,
     );
-    teacherUser = { id: t.id, email: t.email, displayName: t.displayName, role: "teacher" };
+    teacherUser = { id: t.id, email: teacherEmail, displayName: "Guru IPA AI Test", role: "teacher" };
 
     const cls = await createClass(teacherUser, {
       name: "Kelas IPA AI Pipeline",

@@ -322,13 +322,17 @@ export function TeacherDraftReviewClient({
               variant={showSource ? "secondary" : "ghost"}
               size="md"
               onClick={() => setShowSource((prev) => !prev)}
-              className="gap-2 border-line text-muted hover:text-ink"
+              className={`gap-2 border-line ${
+                showSource
+                  ? "bg-primary-subtle text-primary border-primary/30 font-semibold"
+                  : "text-muted hover:text-ink"
+              }`}
               title={showSource ? "Sembunyikan Kolom Teks Sumber" : "Tampilkan Kolom Teks Sumber (Dual View)"}
               aria-pressed={showSource}
             >
               <Columns2 className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">
-                {showSource ? "Mode Bersanding" : "Tampilkan Rujukan"}
+                {showSource ? "Dual View Aktif" : "Buka Dual View"}
               </span>
             </Button>
 
@@ -423,10 +427,10 @@ export function TeacherDraftReviewClient({
         ) : null}
 
         {/* Layout: Sisi Sumber Asli vs Sisi Adaptasi (Dual View) */}
-        <div className={`gap-8 items-start w-full ${showSource ? "flex flex-col md:flex-row" : "flex flex-col max-w-4xl mx-auto"}`}>
+        <div className={`gap-6 items-start w-full ${showSource ? "flex flex-col min-[560px]:flex-row" : "flex flex-col max-w-4xl mx-auto"}`}>
           {/* Kolom Kiri: Rujukan Teks Sumber Asli (Ground Truth) */}
           {showSource && (
-            <div className="w-full md:w-[320px] lg:w-[360px] xl:w-[400px] shrink-0">
+            <div className="w-full min-[560px]:w-[280px] sm:w-[320px] lg:w-[360px] xl:w-[390px] shrink-0">
               <div className="sticky top-24 rounded-surface border border-line bg-surface p-5">
                 <div className="flex items-center justify-between border-b border-line pb-3">
                   <div className="flex items-center gap-2">

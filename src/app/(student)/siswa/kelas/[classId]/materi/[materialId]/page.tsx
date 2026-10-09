@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireRole } from "@/server/auth/guards";
 import { getPublishedLesson } from "@/server/services/drafts.service";
+import { getUserPreferences, getReadingProgress } from "@/server/services/preferences.service";
 import { StudentReaderClient } from "./student-reader-client";
 
 interface PageProps {
@@ -25,5 +26,19 @@ export default async function StudentReaderPage({ params }: PageProps) {
     notFound();
   }
 
-  return <StudentReaderClient lesson={lesson} classId={classId} />;
+  const [preferences, progress] = await Promise.all([
+    getUserPreferences(session.user.id),
+    getReadingProgress(session.user.id, lesson.id),
+  ]);
+
+  return (
+    <StudentReaderClient
+      lesson={lesson}
+      classId={classId}
+      initialPreferences={preferences}
+      initialProgress={progress}
+      csrfToken={session.csrfToken}
+    />
+  );
 }
+

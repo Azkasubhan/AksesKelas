@@ -37,19 +37,19 @@ describe("PostgreSQL Integration: Milestone 2 Draft Review & Publish Vertical Sl
       { displayName: "Guru IPA M2", email: teacherEmail, password, role: "teacher" },
       testIp1,
     );
-    teacherUser = { id: t.id, email: t.email, displayName: t.displayName, role: "teacher" };
+    teacherUser = { id: t.id, email: teacherEmail, displayName: "Guru IPA M2", role: "teacher" };
 
     const sA = await signupUser(
       { displayName: "Siswa Terdaftar", email: studentAEmail, password, role: "student" },
       testIp2,
     );
-    studentAUser = { id: sA.id, email: sA.email, displayName: sA.displayName, role: "student" };
+    studentAUser = { id: sA.id, email: studentAEmail, displayName: "Siswa Terdaftar", role: "student" };
 
     const sB = await signupUser(
       { displayName: "Siswa Luar Kelas", email: studentBEmail, password, role: "student" },
       testIp3,
     );
-    studentBUser = { id: sB.id, email: sB.email, displayName: sB.displayName, role: "student" };
+    studentBUser = { id: sB.id, email: studentBEmail, displayName: "Siswa Luar Kelas", role: "student" };
 
     // Teacher creates class
     const cls = await createClass(teacherUser, {
