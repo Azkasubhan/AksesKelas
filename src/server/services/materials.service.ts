@@ -342,3 +342,39 @@ export async function getMaterialSource(
     blocks,
   };
 }
+
+/**
+ * Guru mengonfirmasi kelayakan blok sumber sebelum diproses (PRD Bagian 9 & Bagian 11).
+ */
+export async function confirmSourceRevision(
+  user: SessionUser,
+  materialId: string,
+  sourceRevisionId?: string,
+): Promise<{ confirmedAt: string }> {
+  const db = getDb();
+  const [mat] = await db
+    .select({ id: materials.id, createdBy: materials.createdBy })
+    .from(materials)
+    .where(eq(materials.id, materialId))
+    .limit(1);
+
+  if (!mat || mat.createdBy !== user.id) {
+    throw Errors.notFound("Materi tidak ditemukan atau Anda bukan pemilik materi ini.");
+  }
+
+  const now = new Date();
+  if (sourceRevisionId) {
+    await db
+      .update(sourceRevisions)
+      .set({ confirmedAt: now })
+      .where(and(eq(sourceRevisions.id, sourceRevisionId), eq(sourceRevisions.materialId, materialId)));
+  } else {
+    await db
+      .update(sourceRevisions)
+      .set({ confirmedAt: now })
+      .where(eq(sourceRevisions.materialId, materialId));
+  }
+
+  return { confirmedAt: now.toISOString() };
+}
+

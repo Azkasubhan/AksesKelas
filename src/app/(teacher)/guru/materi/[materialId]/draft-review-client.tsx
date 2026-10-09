@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   RotateCcw,
   Check,
+  Columns2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/badge";
@@ -45,8 +46,53 @@ export function TeacherDraftReviewClient({
   const [approvingId, setApprovingId] = React.useState<string | null>(null);
   const [publishing, setPublishing] = React.useState(false);
   const [unpublishing, setUnpublishing] = React.useState(false);
+  const [generating, setGenerating] = React.useState(false);
+  const [confirmingSource, setConfirmingSource] = React.useState(false);
+  const [sourceConfirmed, setSourceConfirmed] = React.useState(!!source.confirmedAt);
+  const [showSource, setShowSource] = React.useState(true);
   const [actionError, setActionError] = React.useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = React.useState<string | null>(null);
+
+  async function handleRegenerate() {
+    setGenerating(true);
+    setActionError(null);
+    setActionSuccess(null);
+    try {
+      await apiFetch(`/materials/${draft.materialId}/generate`, {
+        method: "POST",
+        body: { sourceRevisionId: source.id },
+        csrfToken,
+      });
+      const freshDraft = await apiFetch<LessonDraftDto>(`/materials/${draft.materialId}/draft`);
+      setDraft(freshDraft);
+      setActionSuccess("Adaptasi materi baru berhasil disusun dengan AI!");
+      router.refresh();
+    } catch (err) {
+      if (err instanceof ApiError) setActionError(err.message);
+      else setActionError("Gagal menyusun adaptasi materi dengan AI.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function handleConfirmSource() {
+    setConfirmingSource(true);
+    setActionError(null);
+    try {
+      await apiFetch(`/materials/${draft.materialId}/source-confirm`, {
+        method: "POST",
+        body: { sourceRevisionId: source.id },
+        csrfToken,
+      });
+      setSourceConfirmed(true);
+      setActionSuccess("Blok rujukan teks sumber berhasil dikonfirmasi sebagai acuan pembelajaran.");
+    } catch (err) {
+      if (err instanceof ApiError) setActionError(err.message);
+      else setActionError("Gagal mengonfirmasi blok sumber.");
+    } finally {
+      setConfirmingSource(false);
+    }
+  }
 
   const sections = draft.content.sections;
   const approvals = draft.approvals;
@@ -271,7 +317,34 @@ export function TeacherDraftReviewClient({
           </div>
 
           {/* Action Bar Publikasi */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button
+              variant={showSource ? "secondary" : "ghost"}
+              size="md"
+              onClick={() => setShowSource((prev) => !prev)}
+              className="gap-2 border-line text-muted hover:text-ink"
+              title={showSource ? "Sembunyikan Kolom Teks Sumber" : "Tampilkan Kolom Teks Sumber (Dual View)"}
+              aria-pressed={showSource}
+            >
+              <Columns2 className="size-4" aria-hidden="true" />
+              <span className="hidden sm:inline">
+                {showSource ? "Mode Bersanding" : "Tampilkan Rujukan"}
+              </span>
+            </Button>
+
+            {!draft.isPublished && (
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={handleRegenerate}
+                disabled={generating || publishing}
+                className="gap-2 text-primary border-primary/20 bg-primary-subtle/30 hover:bg-primary-subtle"
+              >
+                <Sparkles className="size-4" aria-hidden="true" />
+                <span>{generating ? "Menyusun dengan AI…" : "Susun Adaptasi AI"}</span>
+              </Button>
+            )}
+
             {draft.isPublished ? (
               <>
                 <Button variant="secondary" size="sm" onClick={handleUnpublish} disabled={unpublishing}>
@@ -290,7 +363,7 @@ export function TeacherDraftReviewClient({
                 variant="primary"
                 size="md"
                 onClick={handlePublish}
-                disabled={publishing || !allApproved}
+                disabled={publishing || !allApproved || generating}
                 className="gap-2 shadow-xs"
               >
                 <Send className="size-4" aria-hidden="true" />
@@ -349,40 +422,66 @@ export function TeacherDraftReviewClient({
           </Alert>
         ) : null}
 
-        {/* Layout: Sisi Sumber Asli vs Sisi Adaptasi */}
-        <div className="flex flex-col lg:flex-row items-start gap-8 w-full">
+        {/* Layout: Sisi Sumber Asli vs Sisi Adaptasi (Dual View) */}
+        <div className={`gap-8 items-start w-full ${showSource ? "flex flex-col md:flex-row" : "flex flex-col max-w-4xl mx-auto"}`}>
           {/* Kolom Kiri: Rujukan Teks Sumber Asli (Ground Truth) */}
-          <div className="w-full lg:w-[360px] xl:w-[400px] shrink-0">
-            <div className="sticky top-24 rounded-surface border border-line bg-surface p-5">
-              <div className="flex items-center justify-between border-b border-line pb-3">
-                <div className="flex items-center gap-2">
-                  <FileText className="size-4 text-primary" aria-hidden="true" />
-                  <h2 className="font-heading text-sm font-bold text-ink">
-                    Teks Sumber Asli ({source.inputType.toUpperCase()})
-                  </h2>
-                </div>
-                <span className="text-xs text-muted">
-                  Revisi {source.revisionNumber}
-                </span>
-              </div>
-
-              <p className="mt-3 text-xs text-muted leading-relaxed">
-                Blok rujukan teks hasil ekstraksi yang menjadi acuan kebenaran ilmiah materi ini:
-              </p>
-
-              <div className="mt-4 max-h-[70vh] overflow-y-auto divide-y divide-line-subtle pr-2 text-xs">
-                {source.blocks.map((block) => (
-                  <div key={block.id} className="py-3 first:pt-0 last:pb-0">
-                    <div className="flex items-center justify-between text-[11px] font-mono text-muted mb-1">
-                      <span className="font-semibold text-primary">Blok #{block.ordinal + 1}</span>
-                      {block.pageNumber ? <span>Hlm {block.pageNumber}</span> : null}
-                    </div>
-                    <p className="font-sans leading-relaxed text-ink/80">{block.text}</p>
+          {showSource && (
+            <div className="w-full md:w-[320px] lg:w-[360px] xl:w-[400px] shrink-0">
+              <div className="sticky top-24 rounded-surface border border-line bg-surface p-5">
+                <div className="flex items-center justify-between border-b border-line pb-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="size-4 text-primary" aria-hidden="true" />
+                    <h2 className="font-heading text-sm font-bold text-ink">
+                      Teks Sumber Asli ({source.inputType.toUpperCase()})
+                    </h2>
                   </div>
-                ))}
+                  <span className="text-xs text-muted">
+                    Revisi {source.revisionNumber}
+                  </span>
+                </div>
+
+                <p className="mt-3 text-xs text-muted leading-relaxed">
+                  Blok rujukan teks hasil ekstraksi yang menjadi acuan kebenaran ilmiah materi ini:
+                </p>
+
+                <div className="mt-4 max-h-[70vh] overflow-y-auto divide-y divide-line-subtle pr-2 text-xs">
+                  {source.blocks.map((block) => (
+                    <div key={block.id} className="py-3 first:pt-0 last:pb-0">
+                      <div className="flex items-center justify-between text-[11px] font-mono text-muted mb-1">
+                        <span className="font-semibold text-primary">Blok #{block.ordinal + 1}</span>
+                        {block.pageNumber ? <span>Hlm {block.pageNumber}</span> : null}
+                      </div>
+                      <p className="font-sans leading-relaxed text-ink/80">{block.text}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-line flex items-center justify-between">
+                  <span className="text-[11px] font-medium text-muted">
+                    {sourceConfirmed ? (
+                      <span className="text-emerald font-semibold flex items-center gap-1">
+                        <Check className="size-3" aria-hidden="true" />
+                        Sumber Terkonfirmasi
+                      </span>
+                    ) : (
+                      "Belum Dikonfirmasi"
+                    )}
+                  </span>
+                  {!sourceConfirmed && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleConfirmSource}
+                      disabled={confirmingSource}
+                      className="text-xs text-primary hover:text-primary h-7 px-2"
+                    >
+                      {confirmingSource ? "Menyimpan…" : "Konfirmasi Sumber"}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Kolom Kanan: Draf Adaptasi Multi-Modal Per Bagian */}
           <div className="flex-1 min-w-0 w-full flex flex-col gap-6">
