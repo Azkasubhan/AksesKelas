@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { Alert } from "@/components/ui/badge";
-import { Wordmark } from "@/components/layout/wordmark";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { safeNextPath } from "@/shared/paths";
 import { loginSchema } from "@/shared/schemas/auth-classes";
 import { validateWithSchema } from "@/lib/validation";
+import { AuthCardLayout } from "@/components/auth/auth-card-layout";
 
 function LoginForm() {
   const router = useRouter();
@@ -65,104 +65,83 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas">
-      <header className="border-b border-line bg-canvas/80 px-6 py-4">
-        <div className="mx-auto max-w-5xl">
-          <Wordmark />
-        </div>
-      </header>
+    <AuthCardLayout
+      title="Masuk ke AksesKelas"
+      description="Masukkan alamat email dan kata sandi akun Anda untuk mengakses materi pelajaran."
+      footerText={
+        <>
+          Belum memiliki akun?{" "}
+          <Link
+            href="/signup"
+            className="font-semibold text-ink underline underline-offset-4 hover:text-primary"
+          >
+            Daftar sekarang
+          </Link>
+        </>
+      }
+    >
+      {generalError ? (
+        <Alert tone="danger" className="mb-5" role="alert">
+          {generalError}
+        </Alert>
+      ) : null}
 
-      <main id="konten-utama" className="flex flex-1 items-center justify-center p-4 sm:p-8">
-        <div className="w-full max-w-sm">
-          {/* Header Kartu Masuk */}
-          <div className="mb-8">
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-ink">
-              Masuk ke AksesKelas
-            </h1>
-            <p className="mt-2 text-sm text-muted">
-              Masukkan alamat email dan kata sandi akun Anda untuk mengakses materi pelajaran.
-            </p>
-          </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+        <Field id="login-email" label="Alamat Email" error={fieldErrors.email}>
+          {(props) => (
+            <Input
+              {...props}
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="nama@sekolah.id"
+              required
+            />
+          )}
+        </Field>
 
-          {generalError ? (
-            <Alert tone="danger" className="mb-5" role="alert">
-              {generalError}
-            </Alert>
-          ) : null}
+        <Field id="login-password" label="Kata Sandi" error={fieldErrors.password}>
+          {(props) => (
+            <div className="relative">
+              <Input
+                {...props}
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Minimal 12 karakter"
+                className="pr-11"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-btn p-1.5 text-muted hover:text-ink focus-visible:outline-focus"
+                aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" aria-hidden="true" />
+                ) : (
+                  <Eye className="size-4" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+          )}
+        </Field>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-            <Field
-              id="login-email"
-              label="Alamat Email"
-              error={fieldErrors.email}
-            >
-              {(props) => (
-                <Input
-                  {...props}
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nama@sekolah.id"
-                  required
-                />
-              )}
-            </Field>
-
-            <Field
-              id="login-password"
-              label="Kata Sandi"
-              error={fieldErrors.password}
-            >
-              {(props) => (
-                <div className="relative">
-                  <Input
-                    {...props}
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Minimal 12 karakter"
-                    className="pr-11"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-btn p-1.5 text-muted hover:text-ink focus-visible:outline-focus"
-                    aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="size-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="size-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-              )}
-            </Field>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              disabled={loading}
-              className="mt-2 w-full font-medium"
-            >
-              <span>{loading ? "Sedang memverifikasi…" : "Masuk"}</span>
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Button>
-          </form>
-
-          <div className="mt-8 border-t border-line pt-6 text-center text-sm text-muted">
-            Belum memiliki akun?{" "}
-            <Link href="/signup" className="font-semibold text-ink underline underline-offset-4 hover:text-primary">
-              Daftar sekarang
-            </Link>
-          </div>
-        </div>
-      </main>
-    </div>
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={loading}
+          className="mt-3 w-full font-medium shadow-xs"
+        >
+          <span>{loading ? "Sedang memverifikasi…" : "Masuk"}</span>
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </Button>
+      </form>
+    </AuthCardLayout>
   );
 }
 
