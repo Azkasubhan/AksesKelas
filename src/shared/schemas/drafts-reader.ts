@@ -102,6 +102,7 @@ export type LessonSnapshotDto = z.infer<typeof lessonSnapshotDtoSchema>;
 export const updateDraftSectionSchema = z.object({
   expectedRevision: z.number().int().positive("Revisi draf tidak valid"),
   title: z.string().min(1).max(120).optional(),
+  standard: z.array(sectionItemSchema).optional(),
   easyRead: z.array(sectionItemSchema).optional(),
   cards: z.array(sectionCardSchema).optional(),
   glossary: z.array(sectionGlossarySchema).optional(),

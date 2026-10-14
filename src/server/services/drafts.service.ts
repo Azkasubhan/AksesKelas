@@ -165,6 +165,7 @@ export async function updateDraftSection(
       ...targetSection,
       revision: newSectionRevision,
       title: input.title ?? targetSection.title,
+      standard: input.standard ?? targetSection.standard,
       easyRead: input.easyRead ?? targetSection.easyRead,
       cards: input.cards ?? targetSection.cards,
       glossary: input.glossary ?? targetSection.glossary,

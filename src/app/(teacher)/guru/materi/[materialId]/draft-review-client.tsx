@@ -18,12 +18,20 @@ import {
   RotateCcw,
   Check,
   Columns2,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/badge";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatDate } from "@/lib/utils";
-import type { LessonDraftDto, SectionDto } from "@/shared/schemas/drafts-reader";
+import type {
+  LessonDraftDto,
+  SectionDto,
+  SectionCardDto,
+  SectionItemDto,
+  SectionGlossaryDto,
+} from "@/shared/schemas/drafts-reader";
 import type { SourceRevisionDetailDto } from "@/shared/schemas/materials";
 
 interface TeacherDraftReviewProps {
@@ -42,6 +50,22 @@ export function TeacherDraftReviewClient({
   const [activeTab, setActiveTab] = React.useState<Record<string, "standard" | "easy" | "cards" | "glossary">>({});
   const [editingSectionId, setEditingSectionId] = React.useState<string | null>(null);
   const [editTitle, setEditTitle] = React.useState("");
+
+  // State untuk editing kartu fokus, easy read, standard, dan glosarium
+  const [editingCard, setEditingCard] = React.useState<{
+    sectionId: string;
+    cardId: string;
+    title: string;
+    originalText: string;
+    easyText: string;
+  } | null>(null);
+  const [editingEasyReadSecId, setEditingEasyReadSecId] = React.useState<string | null>(null);
+  const [easyReadDrafts, setEasyReadDrafts] = React.useState<string[]>([]);
+  const [editingStandardSecId, setEditingStandardSecId] = React.useState<string | null>(null);
+  const [standardDrafts, setStandardDrafts] = React.useState<string[]>([]);
+  const [editingGlossarySecId, setEditingGlossarySecId] = React.useState<string | null>(null);
+  const [glossaryDrafts, setGlossaryDrafts] = React.useState<Array<{ term: string; definition: string }>>([]);
+  const [savingEdit, setSavingEdit] = React.useState(false);
 
   const [approvingId, setApprovingId] = React.useState<string | null>(null);
   const [publishing, setPublishing] = React.useState(false);
@@ -229,15 +253,21 @@ export function TeacherDraftReviewClient({
     }
   }
 
-  // Edit judul bagian
-  function startEditSection(sec: SectionDto) {
-    setEditingSectionId(sec.id);
-    setEditTitle(sec.title);
-  }
-
-  async function handleSaveSectionEdit(sec: SectionDto) {
-    if (!editTitle.trim()) return;
-
+  // Helper generik untuk memutasi bagian draf dan mereset status persetujuan guru (Human-in-the-Loop)
+  async function applySectionMutation(
+    sec: SectionDto,
+    patch: {
+      title?: string;
+      cards?: SectionCardDto[];
+      easyRead?: Array<{ text: string; sourceRefs: string[] }>;
+      standard?: Array<{ text: string; sourceRefs: string[] }>;
+      glossary?: Array<{ term: string; definition: string; sourceRefs: string[] }>;
+    },
+    successMessage: string,
+  ): Promise<boolean> {
+    setSavingEdit(true);
+    setActionError(null);
+    setActionSuccess(null);
     try {
       const res = await apiFetch<{ draftRevision: number; sectionRevision: number }>(
         `/materials/${draft.materialId}/draft/sections/${sec.id}`,
@@ -245,19 +275,27 @@ export function TeacherDraftReviewClient({
           method: "PATCH",
           body: {
             expectedRevision: draft.revision,
-            title: editTitle.trim(),
+            ...patch,
           },
           csrfToken,
         },
       );
 
       setDraft((prev) => {
-        const nextSections = prev.content.sections.map((s) =>
-          s.id === sec.id
-            ? { ...s, title: editTitle.trim(), revision: res.sectionRevision }
-            : s,
-        );
-        // Reset approval
+        const nextSections = prev.content.sections.map((s) => {
+          if (s.id !== sec.id) return s;
+          return {
+            ...s,
+            revision: res.sectionRevision,
+            title: patch.title !== undefined ? patch.title : s.title,
+            cards: patch.cards !== undefined ? patch.cards : s.cards,
+            easyRead: patch.easyRead !== undefined ? patch.easyRead : s.easyRead,
+            standard: patch.standard !== undefined ? patch.standard : s.standard,
+            glossary: patch.glossary !== undefined ? patch.glossary : s.glossary,
+          };
+        });
+
+        // Reset approval untuk bagian ini karena isi baru perlu ditinjau ulang guru
         const nextApprovals = { ...prev.approvals };
         delete nextApprovals[sec.id];
 
@@ -270,12 +308,136 @@ export function TeacherDraftReviewClient({
         };
       });
 
-      setEditingSectionId(null);
-      setActionSuccess("Judul bagian berhasil diperbarui. Status persetujuan direset untuk peninjauan ulang.");
+      setActionSuccess(`${successMessage} Status persetujuan bagian ini direset untuk peninjauan ulang.`);
+      return true;
     } catch (err) {
       if (err instanceof ApiError) setActionError(err.message);
-      else setActionError("Gagal memperbarui judul bagian.");
+      else setActionError("Gagal menyimpan perubahan.");
+      return false;
+    } finally {
+      setSavingEdit(false);
     }
+  }
+
+  // 1. Edit judul bagian
+  function startEditSection(sec: SectionDto) {
+    setEditingSectionId(sec.id);
+    setEditTitle(sec.title);
+  }
+
+  async function handleSaveSectionEdit(sec: SectionDto) {
+    if (!editTitle.trim()) return;
+    const ok = await applySectionMutation(
+      sec,
+      { title: editTitle.trim() },
+      `Judul bagian berhasil diubah menjadi "${editTitle.trim()}".`,
+    );
+    if (ok) setEditingSectionId(null);
+  }
+
+  // 2. Edit Kartu Fokus
+  function startEditCard(sectionId: string, card: SectionCardDto) {
+    setEditingCard({
+      sectionId,
+      cardId: card.id,
+      title: card.title,
+      originalText: card.originalText,
+      easyText: card.easyText,
+    });
+  }
+
+  async function handleSaveCard(sec: SectionDto) {
+    if (!editingCard) return;
+    if (!editingCard.title.trim()) {
+      setActionError("Judul kartu tidak boleh kosong.");
+      return;
+    }
+    const nextCards = sec.cards.map((c) =>
+      c.id === editingCard.cardId
+        ? {
+            ...c,
+            title: editingCard.title.trim(),
+            originalText: editingCard.originalText.trim(),
+            easyText: editingCard.easyText.trim(),
+          }
+        : c,
+    );
+    const ok = await applySectionMutation(
+      sec,
+      { cards: nextCards },
+      `Kartu "${editingCard.title}" berhasil diperbarui.`,
+    );
+    if (ok) setEditingCard(null);
+  }
+
+  // 3. Edit Teks Easy Read
+  function startEditEasyRead(sec: SectionDto) {
+    setEditingEasyReadSecId(sec.id);
+    setEasyReadDrafts(sec.easyRead.map((er) => er.text));
+  }
+
+  async function handleSaveEasyRead(sec: SectionDto) {
+    const validTexts = easyReadDrafts.map((t) => t.trim()).filter((t) => t.length > 0);
+    if (validTexts.length === 0) {
+      setActionError("Teks Easy Read minimal memiliki 1 butir kalimat.");
+      return;
+    }
+    const nextEasyRead = validTexts.map((text, idx) => ({
+      text,
+      sourceRefs: sec.easyRead[idx]?.sourceRefs || sec.sourceRefs,
+    }));
+    const ok = await applySectionMutation(
+      sec,
+      { easyRead: nextEasyRead },
+      "Teks Easy Read berhasil diperbarui.",
+    );
+    if (ok) setEditingEasyReadSecId(null);
+  }
+
+  // 4. Edit Teks Standard
+  function startEditStandard(sec: SectionDto) {
+    setEditingStandardSecId(sec.id);
+    setStandardDrafts(sec.standard.map((std) => std.text));
+  }
+
+  async function handleSaveStandard(sec: SectionDto) {
+    const validTexts = standardDrafts.map((t) => t.trim()).filter((t) => t.length > 0);
+    if (validTexts.length === 0) {
+      setActionError("Teks Standard minimal memiliki 1 paragraf.");
+      return;
+    }
+    const nextStandard = validTexts.map((text, idx) => ({
+      text,
+      sourceRefs: sec.standard[idx]?.sourceRefs || sec.sourceRefs,
+    }));
+    const ok = await applySectionMutation(
+      sec,
+      { standard: nextStandard },
+      "Teks Standard berhasil diperbarui.",
+    );
+    if (ok) setEditingStandardSecId(null);
+  }
+
+  // 5. Edit Glosarium Istilah
+  function startEditGlossary(sec: SectionDto) {
+    setEditingGlossarySecId(sec.id);
+    setGlossaryDrafts(sec.glossary.map((g) => ({ term: g.term, definition: g.definition })));
+  }
+
+  async function handleSaveGlossary(sec: SectionDto) {
+    const validGlossary = glossaryDrafts
+      .map((g) => ({ term: g.term.trim(), definition: g.definition.trim() }))
+      .filter((g) => g.term.length > 0 && g.definition.length > 0);
+    const nextGlossary = validGlossary.map((g, idx) => ({
+      ...g,
+      sourceRefs: sec.glossary[idx]?.sourceRefs || sec.sourceRefs,
+    }));
+    const ok = await applySectionMutation(
+      sec,
+      { glossary: nextGlossary },
+      "Glosarium istilah berhasil diperbarui.",
+    );
+    if (ok) setEditingGlossarySecId(null);
   }
 
   return (
@@ -640,47 +802,130 @@ export function TeacherDraftReviewClient({
                     {/* 1. KARTU FOKUS (Focus Cards) */}
                     {currentTab === "cards" && (
                       <div className="space-y-4">
-                        <p className="text-xs text-muted">
-                          Kartu fokus memecah materi menjadi satu konsep per kartu dengan dua varian teks berpasangan (Original dan Easy Read):
-                        </p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-muted">
+                            Kartu fokus memecah materi menjadi satu konsep per kartu dengan dua varian teks berpasangan (Original dan Easy Read):
+                          </p>
+                        </div>
 
                         <div className="grid gap-3.5 sm:grid-cols-2">
                           {sec.cards.map((card, cIdx) => (
                             <div
                               key={card.id || cIdx}
-                              className="rounded-btn border border-line bg-canvas p-4 flex flex-col justify-between gap-3"
+                              className="rounded-btn border border-line bg-canvas p-4 flex flex-col justify-between gap-3 shadow-2xs"
                             >
-                              <div>
-                                <div className="flex items-center justify-between text-xs mb-1.5">
-                                  <span className="font-semibold text-primary">
-                                    {card.kind === "recap" ? "★ Ringkasan Kunci" : `Kartu ${cIdx + 1}`}
-                                  </span>
-                                  <span className="text-[11px] font-mono text-muted">
-                                    {card.kind}
-                                  </span>
-                                </div>
-                                <h4 className="font-heading text-sm font-bold text-ink">
-                                  {card.title}
-                                </h4>
+                              {editingCard?.cardId === card.id ? (
+                                <div className="space-y-3">
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-muted uppercase tracking-wider block">
+                                      Judul Kartu:
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={editingCard.title}
+                                      onChange={(e) =>
+                                        setEditingCard((prev) =>
+                                          prev ? { ...prev, title: e.target.value } : null,
+                                        )
+                                      }
+                                      className="w-full rounded-btn border border-line bg-surface px-2.5 py-1.5 text-xs font-bold text-ink focus:border-primary focus:outline-none"
+                                    />
+                                  </div>
 
-                                <div className="mt-2 space-y-2 text-xs">
-                                  <div className="rounded bg-surface p-2 border border-line-subtle">
-                                    <span className="text-[10px] uppercase font-bold text-muted block mb-0.5">
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-muted uppercase tracking-wider block">
                                       Teks Original:
-                                    </span>
-                                    <p className="text-ink leading-relaxed">{card.originalText}</p>
+                                    </label>
+                                    <textarea
+                                      value={editingCard.originalText}
+                                      onChange={(e) =>
+                                        setEditingCard((prev) =>
+                                          prev ? { ...prev, originalText: e.target.value } : null,
+                                        )
+                                      }
+                                      rows={3}
+                                      className="w-full rounded-btn border border-line bg-surface p-2 text-xs text-ink leading-relaxed focus:border-primary focus:outline-none"
+                                    />
                                   </div>
 
-                                  <div className="rounded bg-primary-subtle/40 p-2 border border-primary/20">
-                                    <span className="text-[10px] uppercase font-bold text-primary block mb-0.5">
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-primary uppercase tracking-wider block">
                                       Varian Easy Read:
-                                    </span>
-                                    <p className="text-ink leading-relaxed font-medium">
-                                      {card.easyText}
-                                    </p>
+                                    </label>
+                                    <textarea
+                                      value={editingCard.easyText}
+                                      onChange={(e) =>
+                                        setEditingCard((prev) =>
+                                          prev ? { ...prev, easyText: e.target.value } : null,
+                                        )
+                                      }
+                                      rows={3}
+                                      className="w-full rounded-btn border border-primary/30 bg-primary-subtle/30 p-2 text-xs text-ink leading-relaxed focus:border-primary focus:outline-none"
+                                    />
+                                  </div>
+
+                                  <div className="flex items-center gap-2 pt-1 border-t border-line">
+                                    <Button
+                                      size="sm"
+                                      variant="primary"
+                                      onClick={() => handleSaveCard(sec)}
+                                      disabled={savingEdit}
+                                    >
+                                      {savingEdit ? "Menyimpan…" : "Simpan Kartu"}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={() => setEditingCard(null)}
+                                    >
+                                      Batal
+                                    </Button>
                                   </div>
                                 </div>
-                              </div>
+                              ) : (
+                                <div>
+                                  <div className="flex items-center justify-between text-xs mb-1.5">
+                                    <span className="font-semibold text-primary">
+                                      {card.kind === "recap" ? "★ Ringkasan Kunci" : `Kartu ${cIdx + 1}`}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-mono text-muted">
+                                        {card.kind}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => startEditCard(sec.id, card)}
+                                        className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold text-primary hover:bg-primary-subtle transition-colors"
+                                        title="Edit isi kartu ini"
+                                      >
+                                        <Edit3 className="size-3" aria-hidden="true" />
+                                        <span>Edit</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <h4 className="font-heading text-sm font-bold text-ink">
+                                    {card.title}
+                                  </h4>
+
+                                  <div className="mt-2.5 space-y-2 text-xs">
+                                    <div className="rounded bg-surface p-2.5 border border-line-subtle">
+                                      <span className="text-[10px] uppercase font-bold text-muted block mb-0.5">
+                                        Teks Original:
+                                      </span>
+                                      <p className="text-ink leading-relaxed">{card.originalText}</p>
+                                    </div>
+
+                                    <div className="rounded bg-primary-subtle/40 p-2.5 border border-primary/20">
+                                      <span className="text-[10px] uppercase font-bold text-primary block mb-0.5">
+                                        Varian Easy Read:
+                                      </span>
+                                      <p className="text-ink leading-relaxed font-medium">
+                                        {card.easyText}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -690,58 +935,305 @@ export function TeacherDraftReviewClient({
                     {/* 2. TEKS EASY READ */}
                     {currentTab === "easy" && (
                       <div className="space-y-3">
-                        <p className="text-xs text-muted">
-                          Versi kalimat pendek dengan tata bahasa aktif dan struktur ramah kognitif untuk siswa yang membutuhkan penjelasan lebih sederhana:
-                        </p>
-
-                        <div className="space-y-2.5 rounded-btn bg-canvas p-4 border border-line text-sm leading-relaxed text-ink">
-                          {sec.easyRead.map((er, erIdx) => (
-                            <p key={erIdx} className="flex items-start gap-2.5">
-                              <span className="mt-1 size-1.5 rounded-full bg-primary shrink-0" />
-                              <span>{er.text}</span>
-                            </p>
-                          ))}
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-muted">
+                            Versi kalimat pendek dengan tata bahasa aktif dan struktur ramah kognitif untuk siswa yang membutuhkan penjelasan lebih sederhana:
+                          </p>
+                          {editingEasyReadSecId !== sec.id && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => startEditEasyRead(sec)}
+                              className="gap-1.5 shrink-0 h-8 text-xs font-semibold text-primary hover:bg-primary-subtle"
+                            >
+                              <Edit3 className="size-3.5" aria-hidden="true" />
+                              <span>Edit Teks Easy Read</span>
+                            </Button>
+                          )}
                         </div>
+
+                        {editingEasyReadSecId === sec.id ? (
+                          <div className="space-y-3 rounded-btn bg-surface p-4 border border-primary/30">
+                            <div className="space-y-2.5">
+                              {easyReadDrafts.map((text, idx) => (
+                                <div key={idx} className="flex items-start gap-2">
+                                  <span className="mt-2 text-xs font-mono font-semibold text-muted">
+                                    {idx + 1}.
+                                  </span>
+                                  <textarea
+                                    value={text}
+                                    onChange={(e) => {
+                                      const next = [...easyReadDrafts];
+                                      next[idx] = e.target.value;
+                                      setEasyReadDrafts(next);
+                                    }}
+                                    rows={2}
+                                    className="flex-1 rounded-btn border border-line bg-canvas p-2 text-xs text-ink focus:border-primary focus:outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setEasyReadDrafts(easyReadDrafts.filter((_, i) => i !== idx))
+                                    }
+                                    className="mt-2 text-muted hover:text-rose-600 p-1 rounded"
+                                    title="Hapus butir kalimat ini"
+                                  >
+                                    <Trash2 className="size-3.5" aria-hidden="true" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => setEasyReadDrafts([...easyReadDrafts, ""])}
+                              className="inline-flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline pt-1"
+                            >
+                              <Plus className="size-3.5" />
+                              <span>Tambah Butir Kalimat</span>
+                            </button>
+
+                            <div className="flex items-center gap-2 pt-3 border-t border-line">
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => handleSaveEasyRead(sec)}
+                                disabled={savingEdit}
+                              >
+                                {savingEdit ? "Menyimpan…" : "Simpan Perubahan Easy Read"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => setEditingEasyReadSecId(null)}
+                              >
+                                Batal
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2.5 rounded-btn bg-canvas p-4 border border-line text-sm leading-relaxed text-ink">
+                            {sec.easyRead.map((er, erIdx) => (
+                              <p key={erIdx} className="flex items-start gap-2.5">
+                                <span className="mt-1 size-1.5 rounded-full bg-primary shrink-0" />
+                                <span>{er.text}</span>
+                              </p>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {/* 3. TEKS STANDARD */}
                     {currentTab === "standard" && (
                       <div className="space-y-3">
-                        <p className="text-xs text-muted">
-                          Teks lengkap sesuai dokumen materi pembelajaran asli:
-                        </p>
-
-                        <div className="space-y-3 rounded-btn bg-canvas p-4 border border-line text-sm leading-relaxed text-ink/90">
-                          {sec.standard.map((std, sIdx) => (
-                            <p key={sIdx}>{std.text}</p>
-                          ))}
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-muted">
+                            Teks lengkap sesuai dokumen materi pembelajaran asli:
+                          </p>
+                          {editingStandardSecId !== sec.id && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => startEditStandard(sec)}
+                              className="gap-1.5 shrink-0 h-8 text-xs font-semibold text-primary hover:bg-primary-subtle"
+                            >
+                              <Edit3 className="size-3.5" aria-hidden="true" />
+                              <span>Edit Teks Standard</span>
+                            </Button>
+                          )}
                         </div>
+
+                        {editingStandardSecId === sec.id ? (
+                          <div className="space-y-3 rounded-btn bg-surface p-4 border border-primary/30">
+                            <div className="space-y-2.5">
+                              {standardDrafts.map((text, idx) => (
+                                <div key={idx} className="flex items-start gap-2">
+                                  <span className="mt-2 text-xs font-mono font-semibold text-muted">
+                                    §{idx + 1}
+                                  </span>
+                                  <textarea
+                                    value={text}
+                                    onChange={(e) => {
+                                      const next = [...standardDrafts];
+                                      next[idx] = e.target.value;
+                                      setStandardDrafts(next);
+                                    }}
+                                    rows={3}
+                                    className="flex-1 rounded-btn border border-line bg-canvas p-2 text-xs text-ink focus:border-primary focus:outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setStandardDrafts(standardDrafts.filter((_, i) => i !== idx))
+                                    }
+                                    className="mt-2 text-muted hover:text-rose-600 p-1 rounded"
+                                    title="Hapus paragraf ini"
+                                  >
+                                    <Trash2 className="size-3.5" aria-hidden="true" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => setStandardDrafts([...standardDrafts, ""])}
+                              className="inline-flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline pt-1"
+                            >
+                              <Plus className="size-3.5" />
+                              <span>Tambah Paragraf</span>
+                            </button>
+
+                            <div className="flex items-center gap-2 pt-3 border-t border-line">
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => handleSaveStandard(sec)}
+                                disabled={savingEdit}
+                              >
+                                {savingEdit ? "Menyimpan…" : "Simpan Teks Standard"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => setEditingStandardSecId(null)}
+                              >
+                                Batal
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-3 rounded-btn bg-canvas p-4 border border-line text-sm leading-relaxed text-ink/90">
+                            {sec.standard.map((std, sIdx) => (
+                              <p key={sIdx}>{std.text}</p>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {/* 4. GLOSARIUM */}
                     {currentTab === "glossary" && (
                       <div className="space-y-3">
-                        <p className="text-xs text-muted">
-                          Istilah penting yang ditemukan pada bagian ini beserta definisi ramah siswa:
-                        </p>
-
-                        <div className="grid gap-2.5 sm:grid-cols-2">
-                          {sec.glossary.map((glo, gIdx) => (
-                            <div
-                              key={gIdx}
-                              className="rounded-btn border border-line bg-canvas p-3 text-xs"
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-muted">
+                            Istilah penting yang ditemukan pada bagian ini beserta definisi ramah siswa:
+                          </p>
+                          {editingGlossarySecId !== sec.id && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => startEditGlossary(sec)}
+                              className="gap-1.5 shrink-0 h-8 text-xs font-semibold text-primary hover:bg-primary-subtle"
                             >
-                              <span className="font-heading font-bold text-primary block text-sm">
-                                {glo.term}
-                              </span>
-                              <p className="mt-1 text-ink/80 leading-relaxed">
-                                {glo.definition}
-                              </p>
-                            </div>
-                          ))}
+                              <Edit3 className="size-3.5" aria-hidden="true" />
+                              <span>Kelola Glosarium</span>
+                            </Button>
+                          )}
                         </div>
+
+                        {editingGlossarySecId === sec.id ? (
+                          <div className="space-y-3 rounded-btn bg-surface p-4 border border-primary/30">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              {glossaryDrafts.map((glo, gIdx) => (
+                                <div
+                                  key={gIdx}
+                                  className="rounded-btn border border-line bg-canvas p-3 space-y-2"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <label className="text-[11px] font-bold text-muted">
+                                      Istilah:
+                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setGlossaryDrafts(
+                                          glossaryDrafts.filter((_, i) => i !== gIdx),
+                                        )
+                                      }
+                                      className="text-muted hover:text-rose-600 p-0.5 rounded"
+                                      title="Hapus istilah ini"
+                                    >
+                                      <Trash2 className="size-3.5" aria-hidden="true" />
+                                    </button>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    value={glo.term}
+                                    onChange={(e) => {
+                                      const next = [...glossaryDrafts];
+                                      next[gIdx] = { ...next[gIdx], term: e.target.value };
+                                      setGlossaryDrafts(next);
+                                    }}
+                                    className="w-full rounded-btn border border-line bg-surface px-2.5 py-1 text-xs font-bold text-ink focus:border-primary focus:outline-none"
+                                  />
+                                  <label className="text-[11px] font-bold text-muted block">
+                                    Definisi:
+                                  </label>
+                                  <textarea
+                                    value={glo.definition}
+                                    onChange={(e) => {
+                                      const next = [...glossaryDrafts];
+                                      next[gIdx] = { ...next[gIdx], definition: e.target.value };
+                                      setGlossaryDrafts(next);
+                                    }}
+                                    rows={2}
+                                    className="w-full rounded-btn border border-line bg-surface p-2 text-xs text-ink leading-relaxed focus:border-primary focus:outline-none"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setGlossaryDrafts([
+                                  ...glossaryDrafts,
+                                  { term: "", definition: "" },
+                                ])
+                              }
+                              className="inline-flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline pt-1"
+                            >
+                              <Plus className="size-3.5" />
+                              <span>Tambah Istilah Baru</span>
+                            </button>
+
+                            <div className="flex items-center gap-2 pt-3 border-t border-line">
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => handleSaveGlossary(sec)}
+                                disabled={savingEdit}
+                              >
+                                {savingEdit ? "Menyimpan…" : "Simpan Glosarium"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => setEditingGlossarySecId(null)}
+                              >
+                                Batal
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid gap-2.5 sm:grid-cols-2">
+                            {sec.glossary.map((glo, gIdx) => (
+                              <div
+                                key={gIdx}
+                                className="rounded-btn border border-line bg-canvas p-3 text-xs"
+                              >
+                                <span className="font-heading font-bold text-primary block text-sm">
+                                  {glo.term}
+                                </span>
+                                <p className="mt-1 text-ink/80 leading-relaxed">
+                                  {glo.definition}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
