@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { Alert } from "@/components/ui/badge";
 import { apiFetch, ApiError, useCsrf } from "@/lib/api-client";
+import { Wordmark } from "@/components/layout/wordmark";
 import { joinClassSchema } from "@/shared/schemas/auth-classes";
 import { validateWithSchema } from "@/lib/validation";
 
@@ -76,7 +77,7 @@ export function JoinClassForm({ csrfToken: propCsrfToken }: JoinClassFormProps) 
             <ChevronLeft className="size-3.5" aria-hidden="true" />
             <span>Kembali ke Beranda Siswa</span>
           </Link>
-          <span className="font-heading text-sm font-bold tracking-tight text-ink">AksesKelas</span>
+          <Wordmark href="/siswa" imageClassName="h-7 sm:h-8" />
         </div>
       </header>
 

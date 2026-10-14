@@ -78,7 +78,7 @@ function ReviewVisual() {
         </div>
       </div>
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-4">
-        <p className="text-xs text-muted">Yang berubah: kalimat dipecah · istilah dijelaskan</p>
+        <p></p>
         <span className="inline-flex h-9 items-center rounded-[9px] bg-primary px-4 text-[13px] font-semibold text-white">
           Setujui bagian ini
         </span>
