@@ -4,7 +4,7 @@ import { ChevronRight, Plus, Users, BookOpen, Clock, FileText } from "lucide-rea
 import { requireRole } from "@/server/auth/guards";
 import { getClassForUser, listMembers } from "@/server/services/classes.service";
 import { listMaterialsForClass } from "@/server/services/materials.service";
-import { AppHeader } from "@/components/layout/app-header";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { JoinCodePanel } from "@/components/teacher/join-code-panel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -31,10 +31,8 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas text-ink">
-      <AppHeader user={session.user} csrfToken={session.csrfToken} />
-
-      <main id="konten-utama" className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
+    <DashboardLayout user={session.user} csrfToken={session.csrfToken}>
+      <main id="konten-utama" className="mx-auto w-full max-w-5xl px-6 py-8 sm:px-10 sm:py-12">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-muted">
           <Link href="/guru" className="hover:text-ink hover:underline">
@@ -102,18 +100,18 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
             <TabsContent value="materi">
               {!materialsList || materialsList.length === 0 ? (
-                <div className="rounded-surface border border-line bg-surface p-12 text-center">
-                  <div className="mx-auto flex size-12 items-center justify-center rounded-btn bg-surface-subtle text-muted">
-                    <FileText className="size-6" aria-hidden="true" />
+                <div className="card-lift rounded-[20px] p-12 text-center">
+                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-xs">
+                    <FileText className="size-7" aria-hidden="true" />
                   </div>
-                  <h3 className="mt-4 font-heading text-lg font-bold text-ink">
+                  <h3 className="mt-5 font-heading text-lg font-bold text-ink">
                     Belum Ada Materi Pelajaran
                   </h3>
-                  <p className="mx-auto mt-1.5 max-w-md text-sm text-muted">
+                  <p className="mx-auto mt-2 max-w-md text-sm text-muted leading-relaxed">
                     Unggah dokumen PDF atau tempel teks materi. Anda dapat meninjau dan mengedit adaptasi multi-modal sebelum menerbitkannya ke murid.
                   </p>
                   <div className="mt-6">
-                    <Button variant="primary" size="md" asChild>
+                    <Button variant="primary" size="md" asChild className="h-11 px-5 cursor-pointer">
                       <Link href={`/guru/kelas/${classId}/materi/baru`}>
                         <Plus className="size-4" aria-hidden="true" />
                         <span>Tambah Materi Sekarang</span>
@@ -126,43 +124,43 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
                   {materialsList.map((mat) => (
                     <div
                       key={mat.id}
-                      className="flex flex-col justify-between gap-4 rounded-surface border border-line bg-surface p-5 transition-shadow hover:shadow-sm sm:flex-row sm:items-center sm:p-6"
+                      className="card-lift group relative overflow-hidden flex flex-col justify-between gap-4 rounded-[18px] p-5 sm:flex-row sm:items-center sm:p-6"
                     >
-                      <div className="flex items-start gap-3.5">
-                        <div className="flex size-11 shrink-0 items-center justify-center rounded-btn bg-primary-subtle text-primary mt-0.5">
+                      <div className="flex items-start gap-4">
+                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-2xs mt-0.5">
                           <BookOpen className="size-5" aria-hidden="true" />
                         </div>
-                        <div>
+                        <div className="space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-semibold text-muted">
+                            <span className="rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-semibold text-muted">
                               {mat.subject}
                             </span>
                             {mat.isPublished ? (
-                              <span className="rounded-md bg-emerald-subtle px-2 py-0.5 text-xs font-semibold text-emerald">
+                              <span className="rounded-md bg-emerald-subtle border border-emerald-border/60 px-2 py-0.5 text-xs font-semibold text-emerald">
                                 Terbit untuk Murid
                               </span>
                             ) : (
-                              <span className="rounded-md bg-amber-subtle px-2 py-0.5 text-xs font-semibold text-amber">
+                              <span className="rounded-md bg-amber-subtle border border-amber-border/60 px-2 py-0.5 text-xs font-semibold text-amber">
                                 Draf Tersimpan
                               </span>
                             )}
                           </div>
-                          <h3 className="mt-1.5 font-heading text-lg font-bold text-ink">
+                          <h3 className="font-heading text-lg font-bold text-ink transition-colors group-hover:text-primary">
                             {mat.title}
                           </h3>
                           {mat.description ? (
-                            <p className="mt-1 text-sm text-muted line-clamp-1">
+                            <p className="text-sm text-muted line-clamp-1">
                               {mat.description}
                             </p>
                           ) : null}
-                          <p className="mt-2 text-xs text-muted">
+                          <p className="text-xs text-muted pt-0.5">
                             Dibuat pada {formatDate(mat.createdAt)}
                           </p>
                         </div>
                       </div>
 
                       <div className="shrink-0 flex items-center gap-2">
-                        <Button variant={mat.isPublished ? "secondary" : "primary"} size="sm" asChild>
+                        <Button variant={mat.isPublished ? "secondary" : "primary"} size="sm" asChild className="h-9 px-4 font-semibold cursor-pointer">
                           <Link href={`/guru/materi/${mat.id}`}>
                             <span>{mat.isPublished ? "Lihat & Edit" : "Tinjau Draf"}</span>
                             <ChevronRight className="size-4" aria-hidden="true" />
@@ -177,21 +175,21 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
             <TabsContent value="anggota">
               {members.length === 0 ? (
-                <div className="rounded-surface border border-line bg-surface p-12 text-center">
-                  <div className="mx-auto flex size-12 items-center justify-center rounded-btn bg-surface-subtle text-muted">
-                    <Users className="size-6" aria-hidden="true" />
+                <div className="card-lift rounded-[20px] p-12 text-center">
+                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-xs">
+                    <Users className="size-7" aria-hidden="true" />
                   </div>
-                  <h3 className="mt-4 font-heading text-lg font-bold text-ink">
+                  <h3 className="mt-5 font-heading text-lg font-bold text-ink">
                     Belum Ada Murid Terdaftar
                   </h3>
-                  <p className="mx-auto mt-1.5 max-w-md text-sm text-muted">
+                  <p className="mx-auto mt-2 max-w-md text-sm text-muted leading-relaxed">
                     Bagikan kode akses kelas di atas kepada murid Anda untuk mulai bergabung ke kelas ini.
                   </p>
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-surface border border-line bg-surface">
+                <div className="card-lift overflow-hidden rounded-[18px]">
                   <table className="w-full text-left text-sm">
-                    <thead className="border-b border-line bg-surface-subtle text-xs font-semibold uppercase tracking-wider text-muted">
+                    <thead className="border-b border-line bg-surface-subtle/80 text-xs font-semibold uppercase tracking-wider text-muted">
                       <tr>
                         <th className="px-6 py-4">Nama Murid</th>
                         <th className="px-6 py-4">Waktu Bergabung</th>
@@ -219,6 +217,6 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
           </Tabs>
         </div>
       </main>
-    </div>
+    </DashboardLayout>
   );
 }

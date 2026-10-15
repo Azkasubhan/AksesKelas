@@ -12,7 +12,10 @@ export function TabsList({
 }: React.ComponentProps<typeof TabsPrimitive.List>) {
   return (
     <TabsPrimitive.List
-      className={cn("flex gap-1 border-b border-line", className)}
+      className={cn(
+        "inline-flex gap-1 rounded-[14px] border border-line bg-surface-subtle/80 p-1 backdrop-blur-sm",
+        className,
+      )}
       {...props}
     />
   );
@@ -25,7 +28,7 @@ export function TabsTrigger({
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "relative -mb-px inline-flex h-11 items-center gap-2 border-b-2 border-transparent px-4 text-[15px] font-medium text-muted transition-colors hover:text-ink data-[state=active]:border-primary data-[state=active]:text-ink",
+        "relative inline-flex h-10 items-center gap-2 rounded-[10px] px-4 text-[14.5px] font-medium text-muted transition-all duration-200 hover:text-ink data-[state=active]:bg-surface data-[state=active]:font-semibold data-[state=active]:text-ink data-[state=active]:shadow-[0_1px_2px_rgba(14,19,38,0.06),0_6px_16px_-8px_rgba(48,64,160,0.35)] [&_svg]:size-4 data-[state=active]:[&_svg]:text-primary",
         className,
       )}
       {...props}

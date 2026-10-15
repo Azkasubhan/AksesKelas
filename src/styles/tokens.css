@@ -83,11 +83,48 @@
   --radius-reader: 16px;
   --radius-dialog: 16px;
 
+  /* Gradien & Bayangan Merek (diturunkan dari shader hero + logo) */
+  --grad-brand: linear-gradient(135deg, #4d65ec 0%, #3b52d4 46%, #4b3fcb 100%);
+  --grad-brand-soft: linear-gradient(135deg, #eef1ff 0%, #e6f6ff 100%);
+  --aurora-indigo: #c9d3ff;
+  --aurora-cyan: #cdf0ff;
+  --aurora-violet: #e4d9ff;
+  --aurora-warm: #ffe6cc;
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-card: 0 1px 2px rgba(14, 19, 38, 0.04), 0 12px 32px -16px rgba(48, 64, 160, 0.24);
+  --shadow-card-hover: 0 2px 4px rgba(14, 19, 38, 0.05), 0 26px 48px -18px rgba(48, 64, 160, 0.42);
+  --shadow-glow: 0 10px 28px -8px rgba(59, 82, 212, 0.55);
+
   /* Reader Tokens (Terisolasi dari Chrome Aplikasi) */
   --reader-bg: #ffffff;
   --reader-text: #131715;
   --reader-muted: #53605a;
   --reader-line: #e0e4df;
+}
+
+/*
+ * Workspace: palet untuk ruang kerja di dalam sistem (dasbor, kelas, tinjauan draf).
+ * Dingin dan lapang agar serasi dengan gradient hero dan logo. Hanya aktif di dalam
+ * elemen .workspace, sehingga halaman depan tidak ikut berubah.
+ */
+.workspace {
+  --canvas: #f4f6fc;
+  --surface: #ffffff;
+  --surface-subtle: #eef1fa;
+  --surface-inset: #e4e8f5;
+  --surface-hover: #e8ecf8;
+
+  --text: #0e1326;
+  --muted-text: #4d5677;
+  --subtle-text: #6b7496;
+
+  --border: #e0e5f3;
+  --border-subtle: #eaedf7;
+  --control-border: #7480a4;
+  --control-border-hover: #3f4a70;
+
+  --primary-subtle: #eef1ff;
+  --primary-border: #cbd5fb;
 }
 
 [data-reader-theme="sepia"] {

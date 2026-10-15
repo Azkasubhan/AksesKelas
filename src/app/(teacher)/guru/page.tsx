@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, Users, FolderPlus } from "lucide-react";
+import { ArrowRight, BookOpen, Users, FolderPlus, Plus } from "lucide-react";
 import { requireRole } from "@/server/auth/guards";
 import { listClassesForTeacher } from "@/server/services/classes.service";
 import { formatJoinCode } from "@/shared/schemas/auth-classes";
-import { AppHeader } from "@/components/layout/app-header";
-import { CreateClassDialog } from "@/components/teacher/create-class-dialog";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
@@ -14,12 +13,11 @@ export const metadata = {
 export default async function TeacherHomePage() {
   const session = await requireRole("teacher");
   const teacherClasses = await listClassesForTeacher(session.user.id);
+  const totalClasses = teacherClasses.length;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas text-ink">
-      <AppHeader user={session.user} csrfToken={session.csrfToken} />
-
-      <main id="konten-utama" className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
+    <DashboardLayout user={session.user} csrfToken={session.csrfToken}>
+      <main id="konten-utama" className="mx-auto w-full max-w-5xl px-6 py-8 sm:px-10 sm:py-10 space-y-8">
         {/* Header Task-Oriented */}
         <div className="flex flex-col justify-between gap-6 border-b border-line pb-8 sm:flex-row sm:items-end">
           <div>
@@ -33,79 +31,102 @@ export default async function TeacherHomePage() {
               Kelola kelas, bagikan materi bacaan multimoda, dan pantau penyampaian materi ke murid Anda.
             </p>
           </div>
-
-          <div className="shrink-0">
-            <CreateClassDialog csrfToken={session.csrfToken} />
-          </div>
         </div>
 
-        {/* Daftar Kelas */}
-        <div className="mt-10">
-          <div className="flex items-center justify-between pb-4 border-b border-line-subtle">
-            <h2 className="font-heading text-xl font-bold tracking-tight text-ink">
-              Kelas yang Anda Ajar ({teacherClasses.length})
-            </h2>
+        {/* 2. Daftar Kelas Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-heading text-xl font-bold tracking-tight text-ink sm:text-2xl">
+                Kelas yang Anda Ajar
+              </h2>
+              <p className="text-xs text-muted">
+                Pilih kelas untuk mengelola materi bacaan atau melihat murid terdaftar.
+              </p>
+            </div>
+            <span className="text-xs font-semibold text-muted bg-surface px-3 py-1 rounded-full border border-line">
+              {totalClasses} Kelas
+            </span>
           </div>
 
-          {teacherClasses.length === 0 ? (
-            <div className="mt-10 rounded-surface border border-line bg-surface p-12 text-center">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-btn bg-surface-subtle text-muted">
-                <FolderPlus className="size-6" aria-hidden="true" />
+          {totalClasses === 0 ? (
+            <div className="card-lift rounded-[20px] p-12 text-center">
+              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-subtle to-primary-subtle/30 text-primary border border-primary-border/60 shadow-xs">
+                <FolderPlus className="size-7" aria-hidden="true" />
               </div>
-              <h3 className="mt-4 font-heading text-lg font-bold text-ink">
+              <h3 className="mt-5 font-heading text-lg font-bold text-ink">
                 Belum Ada Kelas yang Dibuat
               </h3>
-              <p className="mx-auto mt-1.5 max-w-md text-sm text-muted">
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted leading-relaxed">
                 Buat kelas pertama Anda untuk mulai mengunggah file materi pelajaran (PDF atau teks) dan membagikan kode bergabung kepada para murid.
               </p>
               <div className="mt-6">
-                <CreateClassDialog csrfToken={session.csrfToken} />
+                <Button variant="primary" size="md" asChild className="h-11 px-5">
+                  <Link href="/guru/kelas/baru">
+                    <Plus className="size-4" aria-hidden="true" />
+                    <span>Buat Kelas Sekarang</span>
+                  </Link>
+                </Button>
               </div>
             </div>
           ) : (
-            <div className="mt-6 divide-y divide-line rounded-surface border border-line bg-surface">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {teacherClasses.map((cls) => (
                 <div
                   key={cls.id}
-                  className="flex flex-col justify-between gap-4 p-5 transition-colors hover:bg-surface-subtle/50 sm:flex-row sm:items-center sm:p-6"
+                  className="card-lift group relative flex flex-col justify-between overflow-hidden rounded-[18px] p-5 sm:p-6"
                 >
-                  <div className="space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <Link
-                        href={`/guru/kelas/${cls.id}`}
-                        className="font-heading text-lg font-bold text-ink transition-colors hover:text-primary hover:underline"
-                      >
-                        {cls.name}
-                      </Link>
-                      <span className="font-mono text-xs font-semibold tracking-wider text-muted">
-                        Kode: {formatJoinCode(cls.joinCode)}
-                      </span>
+                  {/* Subtle decorative cover bar */}
+                  <div className="cover-dots absolute -right-4 -top-4 size-28 rounded-full bg-primary/10 pointer-events-none opacity-60 transition-transform duration-500 group-hover:scale-125" />
+
+                  <div className="relative z-10 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-2xs">
+                        <BookOpen className="size-5" aria-hidden="true" />
+                      </div>
+                      <div className="flex items-center gap-1.5 rounded-md border border-line bg-surface-subtle/70 px-2.5 py-1 text-xs">
+                        <span className="text-[11px] font-medium text-muted">Kode:</span>
+                        <span className="font-mono font-bold tracking-wider text-ink">
+                          {formatJoinCode(cls.joinCode)}
+                        </span>
+                      </div>
                     </div>
 
-                    {cls.description ? (
-                      <p className="text-sm text-muted line-clamp-1">
-                        {cls.description}
-                      </p>
-                    ) : null}
-
-                    <div className="flex items-center gap-4 text-xs text-muted pt-1">
-                      <span className="flex items-center gap-1.5">
-                        <Users className="size-3.5" aria-hidden="true" />
-                        {cls.studentCount} Murid Terdaftar
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1.5">
-                        <BookOpen className="size-3.5" aria-hidden="true" />
-                        {cls.publishedCount} Materi Terbit
-                      </span>
+                    <div>
+                      <h3 className="font-heading text-lg font-bold text-ink transition-colors group-hover:text-primary">
+                        <Link href={`/guru/kelas/${cls.id}`} className="focus-visible:outline-focus">
+                          {cls.name}
+                        </Link>
+                      </h3>
+                      {cls.description ? (
+                        <p className="mt-1 text-sm text-muted line-clamp-2 leading-relaxed">
+                          {cls.description}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs italic text-muted/80">
+                          Tidak ada deskripsi tambahan
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2.5 self-start sm:self-center shrink-0">
-                    <Button variant="secondary" size="sm" asChild>
+                  <div className="relative z-10 mt-6 flex items-center justify-between border-t border-line/70 pt-4">
+                    <div className="flex items-center gap-3 text-xs text-muted">
+                      <span className="flex items-center gap-1.5">
+                        <Users className="size-3.5 text-muted" aria-hidden="true" />
+                        <span>{cls.studentCount} Murid</span>
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1.5">
+                        <BookOpen className="size-3.5 text-muted" aria-hidden="true" />
+                        <span>{cls.publishedCount} Materi</span>
+                      </span>
+                    </div>
+
+                    <Button variant="secondary" size="sm" asChild className="h-8.5 px-3.5 text-xs font-semibold cursor-pointer">
                       <Link href={`/guru/kelas/${cls.id}`}>
-                        <span>Buka Kelas</span>
-                        <ArrowRight className="size-3.5" aria-hidden="true" />
+                        <span>Buka</span>
+                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                       </Link>
                     </Button>
                   </div>
@@ -115,6 +136,6 @@ export default async function TeacherHomePage() {
           )}
         </div>
       </main>
-    </div>
+    </DashboardLayout>
   );
 }

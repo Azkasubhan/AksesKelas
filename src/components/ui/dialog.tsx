@@ -9,7 +9,11 @@ export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 
-/** Dialog Radix: fokus terkunci, background inert, Escape menutup, fokus kembali ke trigger. */
+/**
+ * Dialog Radix: fokus terkunci, background inert, Escape menutup, fokus kembali ke trigger.
+ * Dirender lewat portal ke body, sehingga kelas `workspace` dipasang di sini agar palet
+ * ruang kerja ikut berlaku di dalam dialog.
+ */
 export function DialogContent({
   className,
   children,
@@ -22,15 +26,15 @@ export function DialogContent({
 }) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-[#18211e]/45" />
+      <DialogPrimitive.Overlay className="dialog-overlay workspace fixed inset-0 z-50 bg-[#0e1326]/45 backdrop-blur-[3px]" />
       <DialogPrimitive.Content
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-dialog border border-line bg-surface p-6 shadow-[0_12px_40px_rgba(24,33,30,0.18)] sm:p-8",
+          "dialog-panel workspace fixed left-1/2 top-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[20px] border border-white/70 bg-surface p-6 text-ink shadow-[0_2px_6px_rgba(14,19,38,0.06),0_40px_80px_-24px_rgba(36,48,140,0.45)] sm:p-8",
           className,
         )}
         {...props}
       >
-        <DialogPrimitive.Title className="pr-10 text-[22px] font-semibold leading-tight tracking-tight">
+        <DialogPrimitive.Title className="pr-10 font-heading text-[22px] font-bold leading-tight tracking-tight">
           {title}
         </DialogPrimitive.Title>
         {description ? (
@@ -43,7 +47,7 @@ export function DialogContent({
         <div className="mt-6">{children}</div>
         <DialogPrimitive.Close
           aria-label="Tutup"
-          className="absolute right-3 top-3 inline-flex size-11 items-center justify-center rounded-btn text-muted hover:bg-[#ebeee9] hover:text-ink"
+          className="absolute right-3 top-3 inline-flex size-11 items-center justify-center rounded-btn text-muted transition-colors hover:bg-surface-subtle hover:text-ink"
         >
           <X className="size-5" aria-hidden="true" />
         </DialogPrimitive.Close>

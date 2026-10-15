@@ -51,10 +51,12 @@ export function JoinCodePanel({ classId, joinCode, csrfToken }: JoinCodePanelPro
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-surface border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-      <div className="flex items-start sm:items-center gap-4">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-btn border border-line bg-surface-subtle text-ink">
-          <KeyRound className="size-4.5" aria-hidden="true" />
+    <div className="card-lift relative overflow-hidden flex flex-col gap-4 rounded-[18px] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div className="cover-dots absolute -right-6 -top-6 size-28 rounded-full bg-primary/10 pointer-events-none opacity-40" />
+
+      <div className="relative z-10 flex items-start sm:items-center gap-4">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-2xs">
+          <KeyRound className="size-5" aria-hidden="true" />
         </div>
         <div>
           <div className="flex items-center gap-2">
@@ -63,12 +65,12 @@ export function JoinCodePanel({ classId, joinCode, csrfToken }: JoinCodePanelPro
             </span>
           </div>
           <div className="mt-1 flex items-center gap-2.5">
-            <span className="font-mono text-2xl font-bold tracking-widest text-ink">
+            <span className="font-mono text-2xl font-bold tracking-widest text-gradient-ink">
               {formatJoinCode(joinCode)}
             </span>
           </div>
           <p className="mt-0.5 text-xs text-muted">
-            Bagikan kode ini kepada murid agar dapat mengakses materi kelas.
+            Bagikan kode ini kepada murid agar dapat mengakses materi pembelajaran di kelas ini.
           </p>
         </div>
       </div>
