@@ -319,14 +319,18 @@ h1, h2, h3, h4 {
 /* Dual view split layout untuk review materi */
 .dual-view-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 100%;
+  width: 100%;
 }
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .dual-view-grid.split {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
   }
   .dual-view-grid.split > :first-child {
     border-right: 1px solid var(--border);
+  }
+  .dual-view-grid.split > * {
+    min-width: 0;
   }
 }
 

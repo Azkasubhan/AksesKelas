@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { apiFetch, ApiError } from "@/lib/api-client";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 import type {
   LessonDraftDto,
   SectionDto,
@@ -571,7 +571,7 @@ export function TeacherDraftReviewClient({
             type="button"
             onClick={() => goSection(sectionIdx - 1)}
             disabled={sectionIdx === 0}
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-muted transition-colors hover:text-ink disabled:opacity-40"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-muted transition-colors hover:text-primary hover:border-primary/40 disabled:opacity-40 cursor-pointer"
             aria-label="Bagian sebelumnya"
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
@@ -588,16 +588,18 @@ export function TeacherDraftReviewClient({
                   type="button"
                   onClick={() => goSection(i)}
                   aria-current={active ? "step" : undefined}
-                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs transition-all cursor-pointer ${
                     active
-                      ? "border-ink bg-ink text-white"
-                      : "border-line bg-surface text-muted hover:text-ink"
+                      ? "border-primary bg-primary text-white shadow-xs font-semibold"
+                      : ok
+                        ? "border-emerald/40 bg-surface text-ink hover:border-emerald font-medium"
+                        : "border-line bg-surface text-muted hover:text-primary hover:border-primary/40 font-medium"
                   }`}
                 >
                   {ok ? (
                     <Check className={`size-3.5 ${active ? "text-white" : "text-emerald"}`} aria-label="Disetujui" />
                   ) : (
-                    <span className="size-1.5 rounded-full bg-amber" aria-label="Perlu persetujuan" />
+                    <span className={`size-1.5 rounded-full ${active ? "bg-white" : "bg-amber"}`} aria-label="Perlu persetujuan" />
                   )}
                   Bagian {i + 1}
                 </button>
@@ -609,7 +611,7 @@ export function TeacherDraftReviewClient({
             type="button"
             onClick={() => goSection(sectionIdx + 1)}
             disabled={sectionIdx >= total - 1}
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-muted transition-colors hover:text-ink disabled:opacity-40"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-muted transition-colors hover:text-primary hover:border-primary/40 disabled:opacity-40 cursor-pointer"
             aria-label="Bagian berikutnya"
           >
             <ChevronRight className="size-4" aria-hidden="true" />
@@ -726,12 +728,8 @@ export function TeacherDraftReviewClient({
               </div>
             </div>
 
-            {/* Sumber | Adaptasi berdampingan */}
-            <div
-              className={`grid ${
-                showSource ? "md:grid-cols-2 md:divide-x md:divide-line" : "grid-cols-1"
-              }`}
-            >
+            {/* Sumber | Adaptasi berdampingan (Dual View) */}
+            <div className={cn("dual-view-grid w-full", showSource && "split")}>
               {showSource && (
                 <div className="p-5 sm:p-6">
                   <div className="flex items-center justify-between">
