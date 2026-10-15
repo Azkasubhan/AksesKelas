@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/toast";
 
 export interface FocusCardItem {
   id: string;
@@ -104,7 +105,7 @@ export function FocusCardReader({
   // Fitur Audio Web Speech
   function toggleListen() {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      alert("Browser Anda belum mendukung fitur Web Speech API.");
+      toast.warning("Browser Anda belum mendukung fitur Web Speech API.");
       return;
     }
 

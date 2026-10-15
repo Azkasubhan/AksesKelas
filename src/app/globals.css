@@ -200,20 +200,18 @@ h1, h2, h3, h4 {
   to { transform: translate3d(-7rem, 4rem, 0) scale(0.94); }
 }
 
-/* Banner hero: gradien indigo kaya dengan kilau cyan dan violet */
+/* Banner hero: gradien arang hangat elegan */
 .hero-banner {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   color: #fff;
   background:
-    radial-gradient(70% 130% at 100% 0%, rgba(110, 214, 255, 0.55) 0%, transparent 56%),
-    radial-gradient(58% 110% at 0% 100%, rgba(167, 139, 250, 0.5) 0%, transparent 62%),
-    linear-gradient(118deg, #3041c4 0%, #3b52d4 42%, #4c46d9 100%);
+    radial-gradient(70% 130% at 100% 0%, rgba(217, 119, 6, 0.15) 0%, transparent 56%),
+    linear-gradient(118deg, #242c26 0%, #171d18 42%, #0e120f 100%);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.22) inset,
-    0 34px 64px -30px rgba(52, 70, 200, 0.7),
-    0 10px 24px -14px rgba(52, 70, 200, 0.5);
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 24px 48px -20px rgba(19, 23, 21, 0.35);
 }
 .hero-banner::before {
   /* Tekstur titik halus yang memudar ke kiri bawah */
@@ -242,21 +240,19 @@ h1, h2, h3, h4 {
   78%, 100% { transform: translateX(35%); opacity: 0; }
 }
 
-/* Kartu terangkat: bayangan berlapis seperti panel di halaman depan */
+/* Kartu terangkat */
 .card-lift {
   background: var(--surface);
-  border: 1px solid color-mix(in srgb, var(--border) 75%, white);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
   transition:
-    transform 0.5s var(--ease-out-expo),
-    box-shadow 0.5s var(--ease-out-expo),
-    border-color 0.3s ease;
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 @media (hover: hover) {
   .card-lift:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-card-hover);
-    border-color: var(--primary-border);
   }
 }
 
@@ -310,3 +306,60 @@ h1, h2, h3, h4 {
   background-size: 200% 100%;
   animation: shimmer 1.8s linear infinite;
 }
+
+/* Transisi geser untuk carousel bagian */
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: none; }
+}
+.slide-in {
+  animation: slide-in 0.3s var(--ease-out-expo) both;
+}
+
+/* Dual view split layout untuk review materi */
+.dual-view-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .dual-view-grid.split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .dual-view-grid.split > :first-child {
+    border-right: 1px solid var(--border);
+  }
+}
+
+/* Toast popup animations */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+}
+
+@keyframes toastProgress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+

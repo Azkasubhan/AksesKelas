@@ -101,7 +101,7 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
             <TabsContent value="materi">
               {!materialsList || materialsList.length === 0 ? (
                 <div className="card-lift rounded-[20px] p-12 text-center">
-                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-xs">
+                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-surface-subtle text-ink border border-line shadow-xs">
                     <FileText className="size-7" aria-hidden="true" />
                   </div>
                   <h3 className="mt-5 font-heading text-lg font-bold text-ink">
@@ -127,7 +127,7 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
                       className="card-lift group relative overflow-hidden flex flex-col justify-between gap-4 rounded-[18px] p-5 sm:flex-row sm:items-center sm:p-6"
                     >
                       <div className="flex items-start gap-4">
-                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-2xs mt-0.5">
+                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-surface-subtle text-ink border border-line shadow-2xs mt-0.5">
                           <BookOpen className="size-5" aria-hidden="true" />
                         </div>
                         <div className="space-y-1">
@@ -176,7 +176,7 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
             <TabsContent value="anggota">
               {members.length === 0 ? (
                 <div className="card-lift rounded-[20px] p-12 text-center">
-                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-xs">
+                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-surface-subtle text-ink border border-line shadow-xs">
                     <Users className="size-7" aria-hidden="true" />
                   </div>
                   <h3 className="mt-5 font-heading text-lg font-bold text-ink">

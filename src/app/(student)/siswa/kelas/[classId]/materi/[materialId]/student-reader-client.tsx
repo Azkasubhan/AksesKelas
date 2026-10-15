@@ -344,7 +344,7 @@ export function StudentReaderClient({
 
   // Styling Tema Warna
   const themeClasses = {
-    light: "bg-[#F7F7F2] text-[#18211E]",
+    light: "bg-canvas text-ink",
     sepia: "bg-[#FBF3E5] text-[#30281F]",
     "high-contrast": "bg-black text-white",
   }[theme];
@@ -600,7 +600,7 @@ export function StudentReaderClient({
                           theme === "light"
                             ? "border-primary ring-2 ring-primary/20"
                             : "border-line"
-                        } bg-[#F7F7F2] text-[#18211E]`}
+                        } bg-canvas text-ink`}
                       >
                         Terang
                       </button>

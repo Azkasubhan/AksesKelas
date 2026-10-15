@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
-import { Alert } from "@/components/ui/badge";
+import { toast } from "@/components/ui/toast";
 import { PdfDropzone } from "@/components/ui/pdf-dropzone";
 import { DEMO_MATERIAL_FIXTURE } from "fixtures/demo/sistem-pencernaan";
 import { createMaterialSchema, MIN_TEXT_CHARS, MAX_TEXT_CHARS } from "@/shared/schemas/materials";
@@ -36,7 +36,6 @@ export default function NewMaterialPage() {
   const [consent, setConsent] = React.useState(false);
 
   const [loading, setLoading] = React.useState(false);
-  const [generalError, setGeneralError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   function handleLoadDemoFixture() {
@@ -46,13 +45,12 @@ export default function NewMaterialPage() {
     setInputType("text");
     setText(DEMO_MATERIAL_FIXTURE.text);
     setConsent(true);
-    setGeneralError(null);
     setFieldErrors({});
+    toast.info("Contoh materi demo IPA berhasil dimuat!");
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setGeneralError(null);
     setFieldErrors({});
 
     // Validasi skema di sisi klien
@@ -67,7 +65,9 @@ export default function NewMaterialPage() {
 
     if (!validation.success) {
       setFieldErrors(validation.fieldErrors);
-      setGeneralError(validation.generalError);
+      if (validation.generalError) {
+        toast.warning(validation.generalError);
+      }
       return;
     }
 
@@ -76,7 +76,7 @@ export default function NewMaterialPage() {
         ...prev,
         pdf: "Silakan pilih atau seret berkas PDF materi Anda terlebih dahulu.",
       }));
-      setGeneralError("Berkas PDF belum dipilih.");
+      toast.warning("Berkas PDF belum dipilih.");
       return;
     }
 
@@ -110,6 +110,7 @@ export default function NewMaterialPage() {
           );
         }
 
+        toast.success("Materi pembelajaran berhasil ditambahkan!");
         router.push(`/guru/kelas/${classId}`);
         router.refresh();
       } else {
@@ -127,15 +128,16 @@ export default function NewMaterialPage() {
           csrfToken,
         });
 
+        toast.success("Materi pembelajaran berhasil ditambahkan!");
         router.push(`/guru/kelas/${classId}`);
         router.refresh();
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        setGeneralError(err.message);
         setFieldErrors(err.fieldErrors || {});
+        toast.error(err.message);
       } else {
-        setGeneralError("Terjadi kesalahan saat memproses materi. Silakan coba kembali.");
+        toast.error("Terjadi kesalahan saat memproses materi. Silakan coba kembali.");
       }
     } finally {
       setLoading(false);
@@ -187,12 +189,6 @@ export default function NewMaterialPage() {
             <span>Muat Contoh Demo IPA</span>
           </Button>
         </div>
-
-        {generalError ? (
-          <Alert tone="danger" className="mt-6" role="alert">
-            {generalError}
-          </Alert>
-        ) : null}
 
         {/* Formulir Input Materi */}
         <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6" noValidate>

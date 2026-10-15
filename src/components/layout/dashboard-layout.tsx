@@ -122,14 +122,14 @@ export function DashboardLayout({
                   className={cn(
                     "flex items-center gap-3 rounded-btn px-3 py-2.5 text-sm font-medium transition-colors",
                     item.active
-                      ? "bg-primary-subtle text-primary font-semibold"
+                      ? "bg-surface-subtle text-ink font-bold border border-line-subtle shadow-2xs"
                       : "text-muted hover:text-ink",
                   )}
                 >
                   <Icon
                     className={cn(
                       "size-4 shrink-0 transition-colors",
-                      item.active ? "text-primary" : "text-muted",
+                      item.active ? "text-ink" : "text-muted",
                     )}
                     aria-hidden="true"
                   />
@@ -176,7 +176,7 @@ export function DashboardLayout({
   return (
     <div className="workspace relative flex min-h-dvh bg-canvas text-ink">
       {/* 1. Sidebar Tetap di Desktop (md+) */}
-      <aside className="hidden w-64 shrink-0 border-r border-line/80 bg-surface/95 backdrop-blur-md md:block z-20 shadow-[1px_0_12px_rgba(14,19,38,0.02)]">
+      <aside className="hidden w-64 shrink-0 border-r border-line/80 bg-surface/95 backdrop-blur-md md:block z-20 shadow-[1px_0_12px_rgba(19,23,21,0.02)]">
         <div className="sticky top-0 h-dvh p-5">
           {SidebarContent}
         </div>
@@ -207,7 +207,7 @@ export function DashboardLayout({
       {/* 3. Mobile Drawer Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-50 bg-[#0e1326]/40 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs md:hidden"
           onClick={() => setMobileOpen(false)}
         >
           <div

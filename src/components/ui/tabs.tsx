@@ -28,7 +28,7 @@ export function TabsTrigger({
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "relative inline-flex h-10 items-center gap-2 rounded-[10px] px-4 text-[14.5px] font-medium text-muted transition-all duration-200 hover:text-ink data-[state=active]:bg-surface data-[state=active]:font-semibold data-[state=active]:text-ink data-[state=active]:shadow-[0_1px_2px_rgba(14,19,38,0.06),0_6px_16px_-8px_rgba(48,64,160,0.35)] [&_svg]:size-4 data-[state=active]:[&_svg]:text-primary",
+        "relative inline-flex h-10 items-center gap-2 rounded-[10px] px-4 text-[14.5px] font-medium text-muted transition-all duration-200 hover:text-ink data-[state=active]:bg-surface data-[state=active]:font-semibold data-[state=active]:text-ink data-[state=active]:shadow-[0_1px_2px_rgba(19,23,21,0.06),0_4px_12px_-4px_rgba(19,23,21,0.08)] [&_svg]:size-4 data-[state=active]:[&_svg]:text-primary",
         className,
       )}
       {...props}

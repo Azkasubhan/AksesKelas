@@ -7,7 +7,7 @@ import { Users, ArrowLeft, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
-import { Alert } from "@/components/ui/badge";
+import { toast } from "@/components/ui/toast";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { joinClassSchema } from "@/shared/schemas/auth-classes";
 import { validateWithSchema } from "@/lib/validation";
@@ -16,13 +16,10 @@ export function JoinClassForm({ csrfToken }: { csrfToken: string }) {
   const router = useRouter();
   const [code, setCode] = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  const [generalError, setGeneralError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
-  const [successClass, setSuccessClass] = React.useState<{ id: string; name: string } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setGeneralError(null);
     setFieldErrors({});
 
     // Normalisasi: buang spasi dan tanda hubung
@@ -31,7 +28,9 @@ export function JoinClassForm({ csrfToken }: { csrfToken: string }) {
     const validation = validateWithSchema(joinClassSchema, { code: cleaned });
     if (!validation.success) {
       setFieldErrors(validation.fieldErrors);
-      setGeneralError(validation.generalError);
+      if (validation.generalError) {
+        toast.warning(validation.generalError);
+      }
       return;
     }
 
@@ -44,17 +43,17 @@ export function JoinClassForm({ csrfToken }: { csrfToken: string }) {
         csrfToken,
       });
 
-      setSuccessClass(result.class);
+      toast.success(`Berhasil bergabung ke kelas ${result.class.name}! Mengalihkan ke ruang kelas…`);
       setTimeout(() => {
         router.push(`/siswa/kelas/${result.class.id}`);
         router.refresh();
-      }, 1200);
+      }, 1000);
     } catch (err) {
       if (err instanceof ApiError) {
-        setGeneralError(err.message);
         setFieldErrors(err.fieldErrors);
+        toast.error(err.message);
       } else {
-        setGeneralError("Gagal bergabung ke kelas. Silakan periksa kembali kode Anda.");
+        toast.error("Gagal bergabung ke kelas. Silakan periksa kembali kode Anda.");
       }
     } finally {
       setLoading(false);
@@ -63,9 +62,7 @@ export function JoinClassForm({ csrfToken }: { csrfToken: string }) {
 
   return (
     <main id="konten-utama" className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-6 py-8 sm:px-10 sm:py-12">
-      <div className="card-lift relative overflow-hidden rounded-[24px] border border-white/80 bg-surface/95 p-7 shadow-[0_4px_24px_rgba(14,19,38,0.06),0_24px_48px_-16px_rgba(59,82,212,0.2)] backdrop-blur-md sm:p-9">
-        {/* Subtle decorative mesh */}
-        <div className="cover-dots absolute -right-6 -top-6 size-32 rounded-full bg-primary/10 pointer-events-none opacity-50" />
+      <div className="relative overflow-hidden rounded-[24px] border border-line bg-surface p-7 shadow-[0_4px_24px_rgba(19,23,21,0.06),0_20px_40px_-16px_rgba(19,23,21,0.08)] sm:p-9">
 
         <div className="relative z-10 mb-7">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted">
@@ -78,18 +75,6 @@ export function JoinClassForm({ csrfToken }: { csrfToken: string }) {
             Masukkan 12 karakter kode akses yang diberikan oleh guru Anda untuk mulai membaca materi belajar.
           </p>
         </div>
-
-        {generalError ? (
-          <Alert tone="danger" className="mb-5" role="alert">
-            {generalError}
-          </Alert>
-        ) : null}
-
-        {successClass ? (
-          <Alert tone="success" className="mb-5" role="status">
-            Berhasil bergabung ke kelas <strong>{successClass.name}</strong>! Mengalihkan ke ruang kelas…
-          </Alert>
-        ) : null}
 
         <form onSubmit={handleSubmit} className="relative z-10 flex flex-col gap-4" noValidate>
           <Field
@@ -116,7 +101,7 @@ export function JoinClassForm({ csrfToken }: { csrfToken: string }) {
             type="submit"
             variant="primary"
             size="lg"
-            disabled={loading || !!successClass}
+            disabled={loading}
             className="mt-3 w-full font-semibold shadow-md cursor-pointer"
           >
             <Users className="size-4" aria-hidden="true" />

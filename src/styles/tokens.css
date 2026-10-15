@@ -4,7 +4,7 @@
  * Mengutamakan keterbacaan, ritme tipografi, dan hierarki permukaan alami tanpa efek dekoratif artifisial.
  */
 :root {
-  /* Permukaan & Latar Belakang (Hangat, Bersahabat, Tenang) */
+  /* Permukaan & Latar Belakang (Cream Hangat, Bersahabat, Tenang) */
   --canvas: #f8f8f5;
   --surface: #ffffff;
   --surface-subtle: #f1f3ee;
@@ -22,7 +22,7 @@
   --control-border: #64748b;
   --control-border-hover: #334155;
 
-  /* Aksen Utama (Indigo Edukasi Modern & Bertenaga) */
+  /* Aksen Utama (Brand Indigo Edukasi) */
   --primary: #3b52d4;
   --primary-hover: #2d3fa6;
   --primary-subtle: #edf2ff;
@@ -59,9 +59,9 @@
   --easy-text: #047857;
   --easy-border: #a7f3d0;
 
-  --focus-bg: #edf2ff;
-  --focus-text: #2d3fa6;
-  --focus-border: #c7d5fa;
+  --focus-bg: #f1f3ee;
+  --focus-text: #212922;
+  --focus-border: #ded8cb;
 
   --listen-bg: #f5f3ff;
   --listen-text: #6d28d9;
@@ -91,40 +91,42 @@
   --aurora-violet: #e4d9ff;
   --aurora-warm: #ffe6cc;
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
-  --shadow-card: 0 1px 2px rgba(14, 19, 38, 0.04), 0 12px 32px -16px rgba(48, 64, 160, 0.24);
-  --shadow-card-hover: 0 2px 4px rgba(14, 19, 38, 0.05), 0 26px 48px -18px rgba(48, 64, 160, 0.42);
-  --shadow-glow: 0 10px 28px -8px rgba(59, 82, 212, 0.55);
+  --shadow-card: 0 1px 3px rgba(19, 23, 21, 0.04), 0 8px 20px -12px rgba(19, 23, 21, 0.08);
+  --shadow-card-hover: 0 2px 6px rgba(19, 23, 21, 0.06), 0 14px 28px -10px rgba(19, 23, 21, 0.1);
+  --shadow-glow: 0 10px 24px -8px rgba(59, 82, 212, 0.25);
 
   /* Reader Tokens (Terisolasi dari Chrome Aplikasi) */
   --reader-bg: #ffffff;
   --reader-text: #131715;
   --reader-muted: #53605a;
-  --reader-line: #e0e4df;
+  --reader-line: #e2e6df;
 }
 
 /*
  * Workspace: palet untuk ruang kerja di dalam sistem (dasbor, kelas, tinjauan draf).
- * Dingin dan lapang agar serasi dengan gradient hero dan logo. Hanya aktif di dalam
- * elemen .workspace, sehingga halaman depan tidak ikut berubah.
+ * Selaras dengan palet cream hangat yang konsisten di seluruh platform.
  */
 .workspace {
-  --canvas: #f4f6fc;
+  --canvas: #f8f8f5;
   --surface: #ffffff;
-  --surface-subtle: #eef1fa;
-  --surface-inset: #e4e8f5;
-  --surface-hover: #e8ecf8;
+  --surface-subtle: #f1f3ee;
+  --surface-inset: #e9ece6;
+  --surface-hover: #ebeee8;
 
-  --text: #0e1326;
-  --muted-text: #4d5677;
-  --subtle-text: #6b7496;
+  --text: #131715;
+  --muted-text: #53605a;
+  --subtle-text: #76847e;
 
-  --border: #e0e5f3;
-  --border-subtle: #eaedf7;
-  --control-border: #7480a4;
-  --control-border-hover: #3f4a70;
+  --border: #e2e6df;
+  --border-subtle: #edf1ea;
+  --control-border: #64748b;
+  --control-border-hover: #334155;
 
-  --primary-subtle: #eef1ff;
-  --primary-border: #cbd5fb;
+  --primary: #3b52d4;
+  --primary-hover: #2d3fa6;
+  --primary-subtle: #edf2ff;
+  --primary-border: #c7d5fa;
+  --on-primary: #ffffff;
 }
 
 [data-reader-theme="sepia"] {

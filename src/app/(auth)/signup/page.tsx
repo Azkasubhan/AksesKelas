@@ -7,7 +7,7 @@ import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
-import { Alert } from "@/components/ui/badge";
+import { toast } from "@/components/ui/toast";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { safeNextPath } from "@/shared/paths";
 import { signupSchema } from "@/shared/schemas/auth-classes";
@@ -23,12 +23,10 @@ export default function SignupPage() {
   const [role, setRole] = React.useState<"teacher" | "student">("teacher");
   const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
-  const [generalError, setGeneralError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setGeneralError(null);
     setFieldErrors({});
 
     // Validasi skema di sisi klien sebelum memanggil server
@@ -41,7 +39,9 @@ export default function SignupPage() {
 
     if (!validation.success) {
       setFieldErrors(validation.fieldErrors);
-      setGeneralError(validation.generalError);
+      if (validation.generalError) {
+        toast.warning(validation.generalError);
+      }
       return;
     }
 
@@ -55,15 +55,16 @@ export default function SignupPage() {
           body: { displayName, email, password, role },
         },
       );
+      toast.success("Pendaftaran akun berhasil! Mengalihkan ke dasbor…");
       const destination = safeNextPath(null, res.role);
       router.push(destination);
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {
-        setGeneralError(err.message);
         setFieldErrors(err.fieldErrors);
+        toast.error(err.message);
       } else {
-        setGeneralError("Pendaftaran akun gagal. Silakan periksa kembali data Anda.");
+        toast.error("Pendaftaran akun gagal. Silakan periksa kembali data Anda.");
       }
     } finally {
       setLoading(false);
@@ -86,11 +87,6 @@ export default function SignupPage() {
         </>
       }
     >
-      {generalError ? (
-        <Alert tone="danger" className="mb-5" role="alert">
-          {generalError}
-        </Alert>
-      ) : null}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         {/* Pilihan Peran */}

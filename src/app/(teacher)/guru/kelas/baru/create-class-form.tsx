@@ -7,7 +7,7 @@ import { GraduationCap, FolderPlus, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
-import { Alert } from "@/components/ui/badge";
+import { toast } from "@/components/ui/toast";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { createClassSchema } from "@/shared/schemas/auth-classes";
 import { validateWithSchema } from "@/lib/validation";
@@ -17,12 +17,10 @@ export function CreateClassForm({ csrfToken }: { csrfToken: string }) {
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  const [generalError, setGeneralError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setGeneralError(null);
     setFieldErrors({});
 
     const validation = validateWithSchema(createClassSchema, {
@@ -32,7 +30,9 @@ export function CreateClassForm({ csrfToken }: { csrfToken: string }) {
 
     if (!validation.success) {
       setFieldErrors(validation.fieldErrors);
-      setGeneralError(validation.generalError);
+      if (validation.generalError) {
+        toast.warning(validation.generalError);
+      }
       return;
     }
 
@@ -43,14 +43,15 @@ export function CreateClassForm({ csrfToken }: { csrfToken: string }) {
         body: { name, description: description.trim() || undefined },
         csrfToken,
       });
+      toast.success("Ruang kelas berhasil dibuat!");
       router.push(`/guru/kelas/${created.id}`);
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {
-        setGeneralError(err.message);
         setFieldErrors(err.fieldErrors);
+        toast.error(err.message);
       } else {
-        setGeneralError("Gagal membuat kelas. Silakan coba kembali.");
+        toast.error("Gagal membuat kelas. Silakan coba kembali.");
       }
       setLoading(false);
     }
@@ -58,9 +59,7 @@ export function CreateClassForm({ csrfToken }: { csrfToken: string }) {
 
   return (
     <main id="konten-utama" className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-6 py-8 sm:px-10 sm:py-12">
-      <div className="card-lift relative overflow-hidden rounded-[24px] border border-white/80 bg-surface/95 p-7 shadow-[0_4px_24px_rgba(14,19,38,0.06),0_24px_48px_-16px_rgba(59,82,212,0.2)] backdrop-blur-md sm:p-9">
-        {/* Subtle decorative mesh in top-right corner of card */}
-        <div className="cover-dots absolute -right-6 -top-6 size-32 rounded-full bg-primary/10 pointer-events-none opacity-50" />
+      <div className="relative overflow-hidden rounded-[24px] border border-line bg-surface p-7 shadow-[0_4px_24px_rgba(19,23,21,0.06),0_20px_40px_-16px_rgba(19,23,21,0.08)] sm:p-9">
 
         <div className="relative z-10 mb-7">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted">
@@ -73,12 +72,6 @@ export function CreateClassForm({ csrfToken }: { csrfToken: string }) {
             Isi nama kelas untuk mulai menambahkan materi belajar dan membagikan kode bergabung kepada murid.
           </p>
         </div>
-
-        {generalError ? (
-          <Alert tone="danger" className="mb-5" role="alert">
-            {generalError}
-          </Alert>
-        ) : null}
 
         <form onSubmit={handleSubmit} className="relative z-10 flex flex-col gap-4" noValidate>
           <Field

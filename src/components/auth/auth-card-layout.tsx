@@ -25,7 +25,7 @@ export function AuthCardLayout({
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-[380px] w-[640px] -translate-x-1/2 bg-[radial-gradient(ellipse_at_top,rgba(59,82,212,0.06)_0%,transparent_70%)] blur-2xl"
+        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-[380px] w-[640px] -translate-x-1/2 bg-[radial-gradient(ellipse_at_top,rgba(33,41,34,0.05)_0%,transparent_70%)] blur-2xl"
         aria-hidden="true"
       />
 
