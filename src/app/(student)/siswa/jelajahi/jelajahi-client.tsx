@@ -171,7 +171,7 @@ export function JelajahiClient() {
             <strong className="text-ink">Struktur Standard Reading:</strong> Materi disajikan mengalir seperti buku teks atau artikel bacaan komprehensif. Cocok untuk siswa yang nyaman membaca teks panjang secara utuh.
           </div>
 
-          <div className="rounded-[20px] border border-line bg-surface p-6 sm:p-8 shadow-xs space-y-4 max-w-3xl">
+          <div className="rounded-[20px] border border-line bg-surface p-6 sm:p-8 shadow-xs space-y-4 w-full">
             <span className="text-xs font-semibold text-primary uppercase tracking-wider">
               {DEMO_MATERIAL.subject}
             </span>
@@ -197,7 +197,7 @@ export function JelajahiClient() {
             <strong className="text-ink">Struktur Focus Cards:</strong> Materi dipecah menjadi kartu-kartu berurutan (bukan kuis atau flashcard). Setiap kartu memuat satu gagasan pokok agar siswa dapat fokus mencerna materi tanpa merasa kewalahan.
           </div>
 
-          <div className="rounded-[20px] border border-primary/30 bg-surface p-6 sm:p-8 shadow-xs max-w-2xl space-y-5">
+          <div className="rounded-[20px] border border-primary/30 bg-surface p-6 sm:p-8 shadow-xs w-full space-y-5">
             {/* Indikator Langkah Kartu */}
             <div className="flex items-center justify-between border-b border-line pb-3">
               <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary-subtle px-2 py-0.5 text-xs font-semibold text-primary">
@@ -414,7 +414,7 @@ export function JelajahiClient() {
           </div>
 
           {/* Area Render */}
-          <div className={`rounded-[20px] border p-6 sm:p-8 shadow-xs max-w-2xl transition-all ${themeClasses}`}>
+          <div className={`rounded-[20px] border p-6 sm:p-8 shadow-xs w-full transition-all ${themeClasses}`}>
             <h3 className="font-heading font-bold" style={{ fontSize: `${demoFontSize + 2}px` }}>
               {DEMO_MATERIAL.title}
             </h3>
@@ -438,7 +438,7 @@ export function JelajahiClient() {
             <strong className="text-ink">Lapisan Audio (Listen):</strong> Memanfaatkan Text-to-Speech langsung dari peramban (Web Speech API) agar siswa dapat mendengarkan materi sambil membaca tanpa beban server tambahan.
           </div>
 
-          <div className="rounded-[20px] border border-line bg-surface p-6 sm:p-8 shadow-xs max-w-2xl space-y-6">
+          <div className="rounded-[20px] border border-line bg-surface p-6 sm:p-8 shadow-xs w-full space-y-6">
             {/* Player Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-[16px] border border-primary/20 bg-primary-subtle/40 p-4">
               <div className="flex items-center gap-3">
