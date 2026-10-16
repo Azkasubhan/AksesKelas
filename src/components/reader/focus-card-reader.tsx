@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toast";
+import { createSpeechUtterance } from "@/lib/speech";
 
 export interface FocusCardItem {
   id: string;
@@ -115,17 +116,11 @@ export function FocusCardReader({
     }
 
     const textToRead = easyRead ? currentCard.easyText : currentCard.originalText;
-    const utterance = new SpeechSynthesisUtterance(textToRead);
-    utterance.lang = "id-ID";
-    utterance.rate = 0.95;
-
-    // Cari suara id-ID jika tersedia
-    const voices = window.speechSynthesis.getVoices();
-    const idVoice = voices.find((v) => v.lang.startsWith("id"));
-    if (idVoice) utterance.voice = idVoice;
-
-    utterance.onend = () => setIsPlaying(false);
-    utterance.onerror = () => setIsPlaying(false);
+    const { utterance } = createSpeechUtterance(textToRead, {
+      rate: 0.95,
+      onEnd: () => setIsPlaying(false),
+      onError: () => setIsPlaying(false),
+    });
 
     window.speechSynthesis.speak(utterance);
     setIsPlaying(true);

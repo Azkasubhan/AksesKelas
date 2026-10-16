@@ -15,6 +15,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api-client";
+import {
+  createSpeechUtterance,
+  detectLanguage,
+  getLanguageLabel,
+} from "@/lib/speech";
 import type { ReadingPreferencesDto } from "@/shared/schemas/preferences";
 
 interface CaraMembacaClientProps {
@@ -106,11 +111,11 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
       ? `${SAMPLE_EASY.title}. ${preferences.structure === "focus" ? SAMPLE_EASY.cardText : SAMPLE_EASY.body}`
       : `${SAMPLE_ORIGINAL.title}. ${preferences.structure === "focus" ? SAMPLE_ORIGINAL.cardText : SAMPLE_ORIGINAL.body}`;
 
-    const utterance = new SpeechSynthesisUtterance(textToRead);
-    utterance.lang = "id-ID";
-    utterance.rate = preferences.speechRate;
-    utterance.onend = () => setIsPlayingAudio(false);
-    utterance.onerror = () => setIsPlayingAudio(false);
+    const { utterance } = createSpeechUtterance(textToRead, {
+      rate: preferences.speechRate,
+      onEnd: () => setIsPlayingAudio(false),
+      onError: () => setIsPlayingAudio(false),
+    });
 
     window.speechSynthesis.speak(utterance);
     setIsPlayingAudio(true);
@@ -478,6 +483,13 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="rounded-[12px] bg-primary-subtle/30 border border-primary/20 p-3 text-xs text-muted flex items-start gap-2.5">
+            <Sparkles className="size-4 text-primary shrink-0 mt-0.5" />
+            <p className="leading-relaxed">
+              <strong className="text-ink">Deteksi Bahasa Otomatis:</strong> Saat materi dibuka, sistem otomatis menggunakan suara penutur Bahasa Indonesia untuk materi Indonesia dan suara Bahasa Inggris untuk materi Inggris tanpa perlu repot memilih secara manual.
+            </p>
           </div>
         </div>
       </div>

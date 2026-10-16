@@ -18,6 +18,12 @@ import {
   Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  createSpeechUtterance,
+  detectLanguage,
+  getLanguageLabel,
+  type DetectedLanguage,
+} from "@/lib/speech";
 
 type ModeTab = "standard" | "focus" | "easy" | "readable" | "listen";
 
@@ -83,8 +89,10 @@ export function JelajahiClient() {
   // State untuk Audio Listen
   const [isPlayingAudio, setIsPlayingAudio] = React.useState(false);
   const [speechRate, setSpeechRate] = React.useState<number>(1);
+  const [detectedSpeechLang, setDetectedSpeechLang] = React.useState<DetectedLanguage>("id-ID");
+  const [activeVoiceName, setActiveVoiceName] = React.useState<string>("");
 
-  // Audio Speech Utterance
+  // Audio Speech Utterance dengan deteksi bahasa otomatis
   function toggleSpeech() {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
@@ -99,11 +107,16 @@ export function JelajahiClient() {
       ? DEMO_MATERIAL.easyParagraphs.join(". ")
       : DEMO_MATERIAL.originalParagraphs.join(". ");
 
-    const utterance = new SpeechSynthesisUtterance(textToRead);
-    utterance.lang = "id-ID";
-    utterance.rate = speechRate;
-    utterance.onend = () => setIsPlayingAudio(false);
-    utterance.onerror = () => setIsPlayingAudio(false);
+    const { utterance, detectedLang, matchedVoice } = createSpeechUtterance(textToRead, {
+      rate: speechRate,
+      onEnd: () => setIsPlayingAudio(false),
+      onError: () => setIsPlayingAudio(false),
+    });
+
+    setDetectedSpeechLang(detectedLang);
+    if (matchedVoice) {
+      setActiveVoiceName(matchedVoice.name);
+    }
 
     window.speechSynthesis.speak(utterance);
     setIsPlayingAudio(true);
@@ -350,9 +363,9 @@ export function JelajahiClient() {
           </div>
 
           {/* Kontrol Cepat Playground */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 rounded-[18px] border border-line bg-surface p-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 rounded-[18px] border border-line bg-surface p-5 sm:p-6 shadow-xs">
             {/* Ukuran Huruf */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 flex-1 min-w-[180px]">
               <label className="text-xs font-semibold text-ink">Ukuran Font ({demoFontSize} px)</label>
               <div className="flex items-center gap-1.5">
                 {[18, 20, 24, 28].map((s) => (
@@ -360,8 +373,8 @@ export function JelajahiClient() {
                     key={s}
                     type="button"
                     onClick={() => setDemoFontSize(s)}
-                    className={`rounded px-2.5 py-1 text-xs font-semibold border cursor-pointer ${
-                      demoFontSize === s ? "bg-primary text-white border-primary" : "border-line bg-surface"
+                    className={`rounded px-2.5 py-1 text-xs font-semibold border transition-all cursor-pointer ${
+                      demoFontSize === s ? "bg-primary text-white border-primary shadow-xs" : "border-line bg-surface hover:bg-surface-subtle"
                     }`}
                   >
                     {s}px
@@ -371,7 +384,7 @@ export function JelajahiClient() {
             </div>
 
             {/* Tema Warna */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 flex-1 min-w-[180px]">
               <label className="text-xs font-semibold text-ink">Tema Warna</label>
               <div className="flex items-center gap-1.5">
                 {[
@@ -383,8 +396,8 @@ export function JelajahiClient() {
                     key={t.key}
                     type="button"
                     onClick={() => setDemoTheme(t.key as typeof demoTheme)}
-                    className={`rounded px-2.5 py-1 text-xs font-semibold border cursor-pointer ${
-                      demoTheme === t.key ? "bg-primary text-white border-primary" : "border-line bg-surface"
+                    className={`rounded px-2.5 py-1 text-xs font-semibold border transition-all cursor-pointer ${
+                      demoTheme === t.key ? "bg-primary text-white border-primary shadow-xs" : "border-line bg-surface hover:bg-surface-subtle"
                     }`}
                   >
                     {t.label}
@@ -394,7 +407,7 @@ export function JelajahiClient() {
             </div>
 
             {/* Jarak Baris */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 flex-1 min-w-[180px]">
               <label className="text-xs font-semibold text-ink">Kerapatan ({demoLineHeight}x)</label>
               <div className="flex items-center gap-1.5">
                 {[1.5, 1.7, 2.0].map((lh) => (
@@ -402,8 +415,8 @@ export function JelajahiClient() {
                     key={lh}
                     type="button"
                     onClick={() => setDemoLineHeight(lh)}
-                    className={`rounded px-2.5 py-1 text-xs font-semibold border cursor-pointer ${
-                      demoLineHeight === lh ? "bg-primary text-white border-primary" : "border-line bg-surface"
+                    className={`rounded px-2.5 py-1 text-xs font-semibold border transition-all cursor-pointer ${
+                      demoLineHeight === lh ? "bg-primary text-white border-primary shadow-xs" : "border-line bg-surface hover:bg-surface-subtle"
                     }`}
                   >
                     {lh}x
@@ -435,7 +448,7 @@ export function JelajahiClient() {
       {activeTab === "listen" && (
         <div className="space-y-4">
           <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted">
-            <strong className="text-ink">Lapisan Audio (Listen):</strong> Memanfaatkan Text-to-Speech langsung dari peramban (Web Speech API) agar siswa dapat mendengarkan materi sambil membaca tanpa beban server tambahan.
+            <strong className="text-ink">Lapisan Audio (Listen):</strong> Memanfaatkan Text-to-Speech langsung dari peramban (Web Speech API) dengan deteksi bahasa otomatis. Teks Indonesia dibacakan dengan suara Indonesia, dan teks Inggris otomatis dibacakan dengan suara Inggris.
           </div>
 
           <div className="rounded-[20px] border border-line bg-surface p-6 sm:p-8 shadow-xs w-full space-y-6">
@@ -447,7 +460,17 @@ export function JelajahiClient() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-ink">Pemutar Suara Pelajaran</p>
-                  <p className="text-xs text-muted">Bahasa Indonesia (Web Speech API)</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-primary-subtle px-2 py-0.5 text-[11px] font-semibold text-primary">
+                      <span>{getLanguageLabel(detectedSpeechLang).flag}</span>
+                      <span>Suara Otomatis: {getLanguageLabel(detectedSpeechLang).shortName}</span>
+                    </span>
+                    {activeVoiceName && (
+                      <span className="text-[11px] text-muted">
+                        ({activeVoiceName})
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

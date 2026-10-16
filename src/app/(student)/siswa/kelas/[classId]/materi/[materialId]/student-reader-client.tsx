@@ -22,6 +22,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api-client";
+import {
+  detectLanguage,
+  getBestVoiceForLanguage,
+  getLanguageLabel,
+} from "@/lib/speech";
 import type { LessonSnapshotDto, SectionCardDto } from "@/shared/schemas/drafts-reader";
 import type { ReadingPreferencesDto, ReadingProgressDto } from "@/shared/schemas/preferences";
 
@@ -256,18 +261,21 @@ export function StudentReaderClient({
 
     if (!textToSpeak.trim()) return;
 
+    const detectedLang = detectLanguage(textToSpeak);
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.rate = speechRate;
+    utterance.lang = detectedLang;
 
-    // Prioritaskan suara Bahasa Indonesia
+    // Prioritaskan suara sesuai bahasa yang terdeteksi otomatis
     if (selectedVoiceUri) {
       const v = voices.find((vox) => vox.voiceURI === selectedVoiceUri);
       if (v) utterance.voice = v;
     } else {
-      const idVoice = voices.find(
-        (vox) => vox.lang.toLowerCase().startsWith("id") || vox.lang.includes("ID"),
-      );
-      if (idVoice) utterance.voice = idVoice;
+      const bestVoice = getBestVoiceForLanguage(voices, detectedLang);
+      if (bestVoice) {
+        utterance.voice = bestVoice;
+        utterance.lang = bestVoice.lang;
+      }
     }
 
     utterance.onstart = () => {
@@ -718,7 +726,7 @@ export function StudentReaderClient({
                   className="rounded-btn border border-line bg-surface px-2 py-1 text-[11px] font-medium text-ink focus:outline-none max-w-[140px] truncate"
                   title="Pilih Suara Pembaca"
                 >
-                  <option value="">Suara Default (ID)</option>
+                  <option value="">Suara Otomatis (Sesuai Bahasa)</option>
                   {voices.map((vox) => (
                     <option key={vox.voiceURI} value={vox.voiceURI}>
                       {vox.name} ({vox.lang})
