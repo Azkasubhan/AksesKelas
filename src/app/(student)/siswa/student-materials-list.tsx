@@ -1,0 +1,205 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { ArrowRight, BookOpen, CheckCircle2, Clock, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { StudentMaterialItem } from "@/server/services/student-workspace.service";
+
+interface StudentMaterialsListProps {
+  materials: StudentMaterialItem[];
+}
+
+type FilterStatus = "all" | "sedang_dibaca" | "belum_dibaca" | "selesai";
+
+export function StudentMaterialsList({ materials }: StudentMaterialsListProps) {
+  const [filter, setFilter] = React.useState<FilterStatus>("all");
+
+  const counts = React.useMemo(() => {
+    return {
+      all: materials.length,
+      sedang_dibaca: materials.filter((m) => m.status === "sedang_dibaca").length,
+      belum_dibaca: materials.filter((m) => m.status === "belum_dibaca").length,
+      selesai: materials.filter((m) => m.status === "selesai").length,
+    };
+  }, [materials]);
+
+  const filteredMaterials = React.useMemo(() => {
+    if (filter === "all") return materials;
+    return materials.filter((m) => m.status === filter);
+  }, [materials, filter]);
+
+  if (materials.length === 0) {
+    return (
+      <div className="rounded-[18px] border border-line bg-surface p-10 text-center shadow-xs">
+        <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary-subtle text-primary border border-primary/20">
+          <BookOpen className="size-6" aria-hidden="true" />
+        </div>
+        <h3 className="mt-4 font-heading text-base font-bold text-ink">
+          Belum Ada Materi Tersedia
+        </h3>
+        <p className="mx-auto mt-1.5 max-w-md text-sm text-muted leading-relaxed">
+          Guru pengajar belum menerbitkan materi bacaan di kelas yang kamu ikuti. Materi baru akan otomatis muncul di sini setelah diterbitkan.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Filter Tabs Sederhana & Ringan */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setFilter("all")}
+          className={`rounded-btn px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+            filter === "all"
+              ? "bg-primary text-white shadow-xs"
+              : "border border-line bg-surface text-ink/75 hover:text-ink hover:bg-surface-subtle"
+          }`}
+        >
+          Semua ({counts.all})
+        </button>
+
+        {counts.sedang_dibaca > 0 && (
+          <button
+            type="button"
+            onClick={() => setFilter("sedang_dibaca")}
+            className={`rounded-btn px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              filter === "sedang_dibaca"
+                ? "bg-primary text-white shadow-xs"
+                : "border border-line bg-surface text-ink/75 hover:text-ink hover:bg-surface-subtle"
+            }`}
+          >
+            Sedang Dibaca ({counts.sedang_dibaca})
+          </button>
+        )}
+
+        {counts.belum_dibaca > 0 && (
+          <button
+            type="button"
+            onClick={() => setFilter("belum_dibaca")}
+            className={`rounded-btn px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              filter === "belum_dibaca"
+                ? "bg-primary text-white shadow-xs"
+                : "border border-line bg-surface text-ink/75 hover:text-ink hover:bg-surface-subtle"
+            }`}
+          >
+            Belum Dibaca ({counts.belum_dibaca})
+          </button>
+        )}
+
+        {counts.selesai > 0 && (
+          <button
+            type="button"
+            onClick={() => setFilter("selesai")}
+            className={`rounded-btn px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              filter === "selesai"
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "border border-line bg-surface text-ink/75 hover:text-ink hover:bg-surface-subtle"
+            }`}
+          >
+            Selesai ({counts.selesai})
+          </button>
+        )}
+      </div>
+
+      {/* Grid Kartu Materi */}
+      {filteredMaterials.length === 0 ? (
+        <div className="rounded-[16px] border border-line bg-surface p-8 text-center text-sm text-muted">
+          Tidak ada materi dalam kategori status ini.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {filteredMaterials.map((item) => {
+            const isCompleted = item.status === "selesai";
+            const isInProgress = item.status === "sedang_dibaca";
+
+            return (
+              <div
+                key={item.id}
+                className="group relative flex flex-col justify-between rounded-[18px] border border-line bg-surface p-5 sm:p-6 shadow-xs transition-all duration-200 hover:border-primary/40 hover:shadow-sm"
+              >
+                <div className="space-y-3">
+                  {/* Header: Mapel & Status Bacaan */}
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="inline-flex items-center rounded-md border border-line bg-surface-subtle px-2 py-0.5 text-xs font-medium text-muted">
+                      {item.subject}
+                    </span>
+
+                    {/* Status Pill */}
+                    {isCompleted && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
+                        <CheckCircle2 className="size-3" aria-hidden="true" />
+                        <span>Selesai</span>
+                      </span>
+                    )}
+
+                    {isInProgress && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary-subtle px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                        <Clock className="size-3" aria-hidden="true" />
+                        <span>Sedang Dibaca</span>
+                      </span>
+                    )}
+
+                    {!isCompleted && !isInProgress && (
+                      <span className="inline-flex items-center rounded-full border border-line bg-surface-subtle px-2.5 py-0.5 text-[11px] font-medium text-muted">
+                        Belum Dibaca
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Judul & Deskripsi */}
+                  <div>
+                    <h3 className="font-heading text-base sm:text-lg font-bold text-ink transition-colors group-hover:text-primary">
+                      <Link href={`/siswa/kelas/${item.classId}/materi/${item.id}`} className="focus-visible:outline-focus">
+                        {item.title}
+                      </Link>
+                    </h3>
+                    <p className="mt-1 text-xs text-muted line-clamp-2 leading-relaxed">
+                      {item.description || "Materi bacaan terbitan guru untuk dipelajari."}
+                    </p>
+                  </div>
+
+                  {/* Info Kelas & Guru */}
+                  <div className="pt-1 text-xs text-muted">
+                    <p className="truncate">
+                      <span className="font-semibold text-ink">{item.className}</span> · Pengajar: {item.teacherName}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer Kartu: Progres & Tombol Aksi */}
+                <div className="mt-5 flex items-center justify-between border-t border-line/70 pt-4">
+                  <div className="text-xs text-muted font-medium">
+                    {item.progressPositionText}
+                  </div>
+
+                  <Button
+                    variant={isInProgress ? "primary" : "secondary"}
+                    size="sm"
+                    asChild
+                    className={`h-8.5 px-3.5 text-xs font-semibold cursor-pointer ${
+                      isInProgress ? "bg-primary text-white" : ""
+                    }`}
+                  >
+                    <Link href={`/siswa/kelas/${item.classId}/materi/${item.id}`}>
+                      <span>
+                        {isInProgress
+                          ? "Lanjutkan"
+                          : isCompleted
+                            ? "Baca Ulang"
+                            : "Mulai Baca"}
+                      </span>
+                      <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -5,6 +5,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen,
+  BookMarked,
+  Sliders,
+  Sparkles,
+  GraduationCap,
   Users,
   LogOut,
   Menu,
@@ -39,6 +43,17 @@ export function DashboardLayout({
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
   const [loggingOut, setLoggingOut] = React.useState(false);
+  const [currentHash, setCurrentHash] = React.useState("");
+
+  // Sinkronkan hash URL untuk navigasi berbasis seksi di dashboard siswa
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentHash(window.location.hash);
+      const onHashChange = () => setCurrentHash(window.location.hash);
+      window.addEventListener("hashchange", onHashChange);
+      return () => window.removeEventListener("hashchange", onHashChange);
+    }
+  }, [pathname]);
 
   // Tutup menu drawer saat rute berpindah
   React.useEffect(() => {
@@ -59,37 +74,95 @@ export function DashboardLayout({
     router.refresh();
   }
 
-  // Tentukan daftar menu navigasi berdasarkan peran akun
-  const navItems =
+  interface NavItem {
+    href: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    active: boolean;
+  }
+
+  interface NavGroup {
+    label: string;
+    items: NavItem[];
+  }
+
+  // Tentukan daftar menu navigasi terstruktur berdasarkan peran akun
+  const navGroups: NavGroup[] =
     user.role === "teacher"
       ? [
           {
-            href: "/guru",
-            label: "Kelas Saya",
-            icon: BookOpen,
-            active:
-              pathname === "/guru" ||
-              (pathname.startsWith("/guru/kelas") && pathname !== "/guru/kelas/baru"),
-          },
-          {
-            href: "/guru/kelas/baru",
-            label: "Buat Kelas",
-            icon: FolderPlus,
-            active: pathname === "/guru/kelas/baru",
+            label: "Menu Utama",
+            items: [
+              {
+                href: "/guru",
+                label: "Kelas Saya",
+                icon: BookOpen,
+                active:
+                  pathname === "/guru" ||
+                  (pathname.startsWith("/guru/kelas") && pathname !== "/guru/kelas/baru"),
+              },
+              {
+                href: "/guru/kelas/baru",
+                label: "Buat Kelas",
+                icon: FolderPlus,
+                active: pathname === "/guru/kelas/baru",
+              },
+            ],
           },
         ]
       : [
           {
-            href: "/siswa",
-            label: "Materi Belajar",
-            icon: BookOpen,
-            active: pathname === "/siswa" || (pathname.startsWith("/siswa/kelas") && !pathname.includes("/bergabung")),
+            label: "Ruang Bacaku",
+            items: [
+              {
+                href: "/siswa",
+                label: "Beranda",
+                icon: BookOpen,
+                active: pathname === "/siswa" && (!currentHash || currentHash === "#"),
+              },
+              {
+                href: "/siswa/bacaan",
+                label: "Bacaan Saya",
+                icon: BookMarked,
+                active: pathname === "/siswa/bacaan",
+              },
+              {
+                href: "/siswa/cara-membaca",
+                label: "Cara Membaca Saya",
+                icon: Sliders,
+                active: pathname === "/siswa/cara-membaca",
+              },
+            ],
           },
           {
-            href: "/siswa/bergabung",
-            label: "Gabung Kelas",
-            icon: Users,
-            active: pathname === "/siswa/bergabung",
+            label: "Kelas",
+            items: [
+              {
+                href: "/siswa/kelas",
+                label: "Kelas Saya",
+                icon: GraduationCap,
+                active:
+                  pathname === "/siswa/kelas" ||
+                  (pathname.startsWith("/siswa/kelas") && !pathname.includes("/bergabung")),
+              },
+              {
+                href: "/siswa/bergabung",
+                label: "Gabung Kelas",
+                icon: Users,
+                active: pathname === "/siswa/bergabung",
+              },
+            ],
+          },
+          {
+            label: "Bantuan",
+            items: [
+              {
+                href: "/siswa/jelajahi",
+                label: "Jelajahi Cara Membaca",
+                icon: Sparkles,
+                active: pathname === "/siswa/jelajahi",
+              },
+            ],
           },
         ];
 
@@ -107,38 +180,50 @@ export function DashboardLayout({
           />
         </div>
 
-        {/* Daftar Menu Navigasi */}
-        <div className="space-y-1">
-          <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-muted/70">
-            Menu Utama
-          </p>
-          <nav aria-label="Navigasi Sidebar" className="space-y-1 pt-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-btn px-3 py-2.5 text-sm font-medium transition-colors",
-                    item.active
-                      ? "bg-surface-subtle text-ink font-bold border border-line-subtle shadow-2xs"
-                      : "text-muted hover:text-ink",
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      "size-4 shrink-0 transition-colors",
-                      item.active ? "text-ink" : "text-muted",
-                    )}
-                    aria-hidden="true"
-                  />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-
-          </nav>
+        {/* Kelompok Navigasi */}
+        <div className="space-y-5">
+          {navGroups.map((group) => (
+            <div key={group.label} className="space-y-1">
+              <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted/70">
+                {group.label}
+              </p>
+              <nav aria-label={`Navigasi ${group.label}`} className="space-y-0.5 pt-0.5">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => {
+                        if (item.href.includes("#")) {
+                          const hash = item.href.slice(item.href.indexOf("#"));
+                          setCurrentHash(hash);
+                        } else {
+                          setCurrentHash("");
+                        }
+                        setMobileOpen(false);
+                      }}
+                      className={cn(
+                        "flex items-center gap-3 rounded-btn px-3 py-2 text-sm font-medium transition-colors",
+                        item.active
+                          ? "bg-surface-subtle text-ink font-bold border border-line-subtle shadow-2xs"
+                          : "text-muted hover:text-ink hover:bg-surface-subtle/50",
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "size-4 shrink-0 transition-colors",
+                          item.active ? "text-primary" : "text-muted",
+                        )}
+                        aria-hidden="true"
+                      />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          ))}
         </div>
       </div>
 
