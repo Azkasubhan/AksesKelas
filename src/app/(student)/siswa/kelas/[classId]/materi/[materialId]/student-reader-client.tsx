@@ -408,16 +408,23 @@ export function StudentReaderClient({
   // Font family class
   const fontClass = {
     inter: "font-sans",
-    system: "font-mono",
-    atkinson: "font-sans tracking-wide",
+    system: "font-system-mono",
+    atkinson: "font-atkinson",
   }[fontFamily];
 
-  // Max width container reader
+  // Dynamic paragraph gap according to line-height
+  const paragraphGapClass = {
+    1.5: "space-y-3.5",
+    1.7: "space-y-5",
+    2.0: "space-y-7",
+  }[lineHeight as 1.5 | 1.7 | 2.0] || "space-y-5";
+
+  // Max width container reader - wider, spacious and balanced
   const maxLineWidthClass = {
-    45: "max-w-xl",
-    60: "max-w-2xl",
-    75: "max-w-3xl",
-  }[lineWidth as 45 | 60 | 75] || "max-w-2xl";
+    45: "max-w-3xl",
+    60: "max-w-5xl",
+    75: "max-w-6xl",
+  }[lineWidth as 45 | 60 | 75] || "max-w-5xl";
 
   return (
     <div className={`min-h-dvh flex flex-col bg-canvas text-ink transition-colors duration-200 ${fontClass}`}>
@@ -776,7 +783,7 @@ export function StudentReaderClient({
       </header>
 
       {/* Konten Membaca Utama */}
-      <main id="konten-utama" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
+      <main id="konten-utama" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {/* Banner Lanjutkan dari Progres Terakhir */}
         {showResumeBanner && (
           <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-subtle/50 p-4">
@@ -856,7 +863,7 @@ export function StudentReaderClient({
 
                 {/* Kartu Konsep Fokus */}
                 <div
-                  className={`rounded-[24px] border p-7 sm:p-10 transition-all duration-200 ${cardTheme.card}`}
+                  className={`rounded-[28px] border p-8 sm:p-12 transition-all duration-200 ${cardTheme.card} ${fontClass}`}
                   style={{
                     fontSize: `${fontSize}px`,
                     lineHeight: lineHeight,
@@ -886,7 +893,7 @@ export function StudentReaderClient({
                     {currentCardItem.card.title}
                   </h2>
 
-                  <p className={`leading-relaxed ${cardTheme.body}`}>
+                  <p style={{ lineHeight }} className={`transition-all duration-150 ${cardTheme.body}`}>
                     {easyRead
                       ? currentCardItem.card.easyText
                       : currentCardItem.card.originalText}
@@ -946,7 +953,7 @@ export function StudentReaderClient({
         {structure === "standard" && (
           <div className={`mx-auto ${maxLineWidthClass}`}>
             <article
-              className={`rounded-[24px] border p-6 sm:p-10 md:p-12 space-y-10 transition-all duration-200 ${cardTheme.card}`}
+              className={`rounded-[28px] border p-7 sm:p-12 md:p-14 space-y-12 transition-all duration-200 ${cardTheme.card} ${fontClass}`}
               style={{
                 fontSize: `${fontSize}px`,
                 lineHeight: lineHeight,
@@ -962,7 +969,7 @@ export function StudentReaderClient({
                   {lesson.title}
                 </h1>
                 {lesson.description && (
-                  <p className={`mt-3 text-base leading-relaxed ${cardTheme.subtitle}`}>
+                  <p style={{ lineHeight }} className={`mt-3 text-base ${cardTheme.subtitle}`}>
                     {lesson.description}
                   </p>
                 )}
@@ -970,9 +977,12 @@ export function StudentReaderClient({
 
               {/* Bagian per Bagian */}
               {lesson.content.sections.map((sec, sIdx) => (
-                <section key={sec.id} className="space-y-6">
-                  <div className={`flex items-center gap-3 border-b pb-3 ${cardTheme.divider}`}>
-                    <span className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${cardTheme.sectionBadge}`}>
+                <section
+                  key={sec.id}
+                  className={`space-y-6 ${sIdx > 0 ? `pt-10 sm:pt-14 border-t ${cardTheme.divider}` : ""}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`flex size-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${cardTheme.sectionBadge}`}>
                       {sIdx + 1}
                     </span>
                     <h2 className={`font-heading text-xl sm:text-2xl font-bold tracking-tight ${cardTheme.heading}`}>
@@ -981,19 +991,19 @@ export function StudentReaderClient({
                   </div>
 
                   {/* Paragraf Bacaan (Original vs Easy Read) */}
-                  <div className="space-y-4">
+                  <div className={paragraphGapClass}>
                     {easyRead ? (
-                      <div className="space-y-3">
+                      <div className={paragraphGapClass}>
                         {sec.easyRead.map((er, idx) => (
-                          <p key={idx} className="flex items-start gap-3">
-                            <span className={`mt-2 size-2 rounded-full shrink-0 ${cardTheme.easyReadDot}`} />
-                            <span className="leading-relaxed">{er.text}</span>
+                          <p key={idx} style={{ lineHeight }} className="flex items-start gap-3 transition-all duration-150">
+                            <span className={`mt-2.5 size-2 rounded-full shrink-0 ${cardTheme.easyReadDot}`} />
+                            <span style={{ lineHeight }}>{er.text}</span>
                           </p>
                         ))}
                       </div>
                     ) : (
                       sec.standard.map((std, idx) => (
-                        <p key={idx} className="leading-relaxed">
+                        <p key={idx} style={{ lineHeight }} className="transition-all duration-150">
                           {std.text}
                         </p>
                       ))
@@ -1002,17 +1012,17 @@ export function StudentReaderClient({
 
                   {/* Glosarium Istilah Terkait */}
                   {sec.glossary.length > 0 && (
-                    <div className={`mt-6 rounded-xl border p-5 ${cardTheme.glossaryCard}`}>
-                      <div className="flex items-center gap-2 text-xs font-bold mb-3">
+                    <div className={`mt-8 mb-2 rounded-2xl border p-5 sm:p-6 ${cardTheme.glossaryCard}`}>
+                      <div className="flex items-center gap-2 text-xs font-bold mb-3.5">
                         <HelpCircle className="size-4 text-primary" aria-hidden="true" />
                         <span className={cardTheme.heading}>Istilah Penting pada Bagian Ini:</span>
                       </div>
 
-                      <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                      <div className="grid gap-3.5 sm:grid-cols-2 text-xs">
                         {sec.glossary.map((glo, gIdx) => (
                           <div
                             key={gIdx}
-                            className={`rounded-lg p-3 border ${
+                            className={`rounded-xl p-3.5 border ${
                               theme === "high-contrast"
                                 ? "bg-black/50 border-white/10"
                                 : "bg-canvas/60 border-line-subtle"
@@ -1021,7 +1031,7 @@ export function StudentReaderClient({
                             <span className={`font-bold block text-sm ${cardTheme.glossaryTerm}`}>
                               {glo.term}
                             </span>
-                            <p className={`mt-1 leading-relaxed ${cardTheme.glossaryDef}`}>
+                            <p style={{ lineHeight }} className={`mt-1.5 ${cardTheme.glossaryDef}`}>
                               {glo.definition}
                             </p>
                           </div>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans, Inter } from "next/font/google";
+import { Instrument_Sans, Inter, Atkinson_Hyperlegible } from "next/font/google";
 import { Toaster } from "@/components/ui/toast";
 import "./globals.css";
 
@@ -13,6 +13,13 @@ const headingFont = Instrument_Sans({
 const sansFont = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const hyperlegibleFont = Atkinson_Hyperlegible({
+  subsets: ["latin"],
+  variable: "--font-hyperlegible",
+  weight: ["400", "700"],
   display: "swap",
 });
 
@@ -33,7 +40,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={`${sansFont.variable} ${headingFont.variable}`}>
+    <html lang="id" className={`${sansFont.variable} ${headingFont.variable} ${hyperlegibleFont.variable}`}>
       <body className="min-h-dvh flex flex-col font-sans antialiased text-ink bg-canvas selection:bg-primary-subtle selection:text-ink">
         <a
           href="#konten-utama"

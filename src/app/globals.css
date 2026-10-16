@@ -68,6 +68,7 @@
 
   --font-sans: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   --font-heading: var(--font-heading, "Instrument Sans", "Inter", -apple-system, sans-serif);
+  --font-hyperlegible: var(--font-hyperlegible, "Atkinson Hyperlegible", -apple-system, sans-serif);
 
   --radius-btn: var(--radius-btn);
   --radius-input: var(--radius-input);
@@ -97,6 +98,28 @@ h1, h2, h3, h4 {
   font-family: var(--font-heading);
   letter-spacing: -0.025em;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+.font-atkinson,
+.font-atkinson h1,
+.font-atkinson h2,
+.font-atkinson h3,
+.font-atkinson h4,
+.font-atkinson p,
+.font-atkinson span,
+.font-atkinson div {
+  font-family: var(--font-hyperlegible), "Atkinson Hyperlegible", -apple-system, sans-serif !important;
+}
+
+.font-system-mono,
+.font-system-mono h1,
+.font-system-mono h2,
+.font-system-mono h3,
+.font-system-mono h4,
+.font-system-mono p,
+.font-system-mono span,
+.font-system-mono div {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
 /* Aksesibilitas Fokus: terlihat tegas, berjarak 2px, warna indigo pekat */
