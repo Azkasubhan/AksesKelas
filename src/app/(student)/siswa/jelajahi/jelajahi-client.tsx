@@ -307,7 +307,7 @@ export function JelajahiClient() {
             >
               <div className="flex items-center justify-between border-b border-line pb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted">
-                  Bahasa Asli
+                  Bahasa Original
                 </span>
                 {!easyReadActive && (
                   <span className="text-[11px] font-semibold text-primary">Sedang Dilihat</span>
@@ -461,10 +461,6 @@ export function JelajahiClient() {
                 <div>
                   <p className="text-sm font-bold text-ink">Pemutar Suara Pelajaran</p>
                   <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                    <span className="inline-flex items-center gap-1 rounded-md bg-primary-subtle px-2 py-0.5 text-[11px] font-semibold text-primary">
-                      <span>{getLanguageLabel(detectedSpeechLang).flag}</span>
-                      <span>Suara Otomatis: {getLanguageLabel(detectedSpeechLang).shortName}</span>
-                    </span>
                     {activeVoiceName && (
                       <span className="text-[11px] text-muted">
                         ({activeVoiceName})

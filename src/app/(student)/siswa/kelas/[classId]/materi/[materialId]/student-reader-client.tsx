@@ -350,23 +350,59 @@ export function StudentReaderClient({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [structure, currentCardIndex, allCards.length]);
 
-  // Styling Tema Warna
-  const themeClasses = {
-    light: "bg-canvas text-ink",
-    sepia: "bg-[#FBF3E5] text-[#30281F]",
-    "high-contrast": "bg-black text-white",
-  }[theme];
-
-  const surfaceClasses = {
-    light: "bg-surface border-line shadow-xs",
-    sepia: "bg-[#F4E8D3] border-[#DFCFA9] shadow-xs text-[#30281F]",
-    "high-contrast": "bg-[#18181b] border-white/20 text-white shadow-xs",
+  // Styling Tema Warna Khusus Kartu Membaca (Hanya mengubah kartu di dalam, bukan latar halaman)
+  const cardTheme = {
+    light: {
+      card: "bg-surface border-line shadow-sm text-ink",
+      title: "text-ink",
+      subtitle: "text-muted",
+      tag: "text-primary",
+      heading: "text-ink",
+      body: "text-ink",
+      divider: "border-line",
+      sectionBadge: "bg-primary text-white",
+      glossaryCard: "bg-surface-subtle border-line text-ink",
+      glossaryTerm: "text-ink",
+      glossaryDef: "text-muted",
+      easyReadDot: "bg-primary",
+      completeBox: "border-line bg-surface-subtle/50",
+    },
+    sepia: {
+      card: "bg-[#FBF3E5] border-[#DFCFA9] shadow-sm text-[#30281F]",
+      title: "text-[#30281F]",
+      subtitle: "text-[#6B5A45]",
+      tag: "text-[#7A5B36]",
+      heading: "text-[#30281F]",
+      body: "text-[#30281F]",
+      divider: "border-[#DFCFA9]",
+      sectionBadge: "bg-[#7A5B36] text-[#FBF3E5]",
+      glossaryCard: "bg-[#F4E8D3] border-[#DFCFA9] text-[#30281F]",
+      glossaryTerm: "text-[#30281F]",
+      glossaryDef: "text-[#6B5A45]",
+      easyReadDot: "bg-[#7A5B36]",
+      completeBox: "border-[#DFCFA9] bg-[#F4E8D3]/60",
+    },
+    "high-contrast": {
+      card: "bg-[#18181b] border-white/25 shadow-lg text-white",
+      title: "text-white",
+      subtitle: "text-zinc-300",
+      tag: "text-indigo-300",
+      heading: "text-white",
+      body: "text-zinc-100",
+      divider: "border-white/20",
+      sectionBadge: "bg-white text-black font-bold",
+      glossaryCard: "bg-zinc-900 border-white/20 text-white",
+      glossaryTerm: "text-white font-semibold",
+      glossaryDef: "text-zinc-300",
+      easyReadDot: "bg-white",
+      completeBox: "border-white/20 bg-white/5",
+    },
   }[theme];
 
   const activeBadgeClasses = {
     light: "bg-primary-subtle text-primary border-primary/20",
     sepia: "bg-[#ebddc0] text-[#5c421e] border-[#DFCFA9]",
-    "high-contrast": "bg-white text-black font-bold",
+    "high-contrast": "bg-white text-black font-bold border-white",
   }[theme];
 
   // Font family class
@@ -384,7 +420,7 @@ export function StudentReaderClient({
   }[lineWidth as 45 | 60 | 75] || "max-w-2xl";
 
   return (
-    <div className={`min-h-dvh flex flex-col transition-colors duration-200 ${themeClasses} ${fontClass}`}>
+    <div className={`min-h-dvh flex flex-col bg-canvas text-ink transition-colors duration-200 ${fontClass}`}>
       {/* Sticky Reader Header */}
       <header className="sticky top-0 z-50 w-full border-b border-line bg-surface/90 backdrop-blur-md px-4 py-2.5 sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
@@ -820,7 +856,7 @@ export function StudentReaderClient({
 
                 {/* Kartu Konsep Fokus */}
                 <div
-                  className={`rounded-2xl border p-7 sm:p-10 transition-all ${surfaceClasses}`}
+                  className={`rounded-[24px] border p-7 sm:p-10 transition-all duration-200 ${cardTheme.card}`}
                   style={{
                     fontSize: `${fontSize}px`,
                     lineHeight: lineHeight,
@@ -828,13 +864,13 @@ export function StudentReaderClient({
                   }}
                 >
                   <div className="mb-4 flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                    <span className={`text-xs font-bold uppercase tracking-wider ${cardTheme.tag}`}>
                       {currentCardItem.card.kind === "recap" ? "Ringkasan Pembelajaran" : "Gagasan Inti"}
                     </span>
 
                     <div className="flex items-center gap-2">
                       {easyRead && (
-                        <span className="rounded bg-primary-subtle px-2 py-0.5 text-xs font-semibold text-primary">
+                        <span className={`rounded px-2 py-0.5 text-xs font-semibold ${theme === "high-contrast" ? "bg-white/10 text-white" : "bg-primary-subtle text-primary"}`}>
                           Easy Read Aktif
                         </span>
                       )}
@@ -846,11 +882,11 @@ export function StudentReaderClient({
                     </div>
                   </div>
 
-                  <h2 className="font-heading text-2xl font-bold tracking-tight text-ink sm:text-3xl mb-6">
+                  <h2 className={`font-heading text-2xl font-bold tracking-tight sm:text-3xl mb-6 ${cardTheme.title}`}>
                     {currentCardItem.card.title}
                   </h2>
 
-                  <p className="leading-relaxed">
+                  <p className={`leading-relaxed ${cardTheme.body}`}>
                     {easyRead
                       ? currentCardItem.card.easyText
                       : currentCardItem.card.originalText}
@@ -908,95 +944,119 @@ export function StudentReaderClient({
         {/* 2. STRUKTUR: MODE BACA STANDARD (Full Article)          */}
         {/* ======================================================== */}
         {structure === "standard" && (
-          <article
-            className={`mx-auto space-y-12 ${maxLineWidthClass}`}
-            style={{
-              fontSize: `${fontSize}px`,
-              lineHeight: lineHeight,
-              letterSpacing: `${letterSpacing}em`,
-            }}
-          >
-            {/* Header Artikel */}
-            <div className="border-b border-line pb-8">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-                {lesson.subject} • Pengajar: {lesson.teacherName}
-              </span>
-              <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-                {lesson.title}
-              </h1>
-              {lesson.description && (
-                <p className="mt-3 text-base text-muted leading-relaxed">
-                  {lesson.description}
-                </p>
-              )}
-            </div>
-
-            {/* Bagian per Bagian */}
-            {lesson.content.sections.map((sec, sIdx) => (
-              <section key={sec.id} className="space-y-6">
-                <div className="flex items-center gap-3 border-b border-line pb-3">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-xs font-bold text-primary">
-                    {sIdx + 1}
-                  </span>
-                  <h2 className="font-heading text-2xl font-bold tracking-tight text-ink">
-                    {sec.title}
-                  </h2>
-                </div>
-
-                {/* Paragraf Bacaan (Original vs Easy Read) */}
-                <div className="space-y-4">
-                  {easyRead ? (
-                    <div className="space-y-3">
-                      {sec.easyRead.map((er, idx) => (
-                        <p key={idx} className="flex items-start gap-3">
-                          <span className="mt-2 size-2 rounded-full bg-primary shrink-0" />
-                          <span>{er.text}</span>
-                        </p>
-                      ))}
-                    </div>
-                  ) : (
-                    sec.standard.map((std, idx) => (
-                      <p key={idx} className="leading-relaxed">
-                        {std.text}
-                      </p>
-                    ))
-                  )}
-                </div>
-
-                {/* Glosarium Istilah Terkait */}
-                {sec.glossary.length > 0 && (
-                  <div className={`mt-6 rounded-xl border p-5 ${surfaceClasses}`}>
-                    <div className="flex items-center gap-2 text-xs font-bold text-primary mb-3">
-                      <HelpCircle className="size-4" aria-hidden="true" />
-                      <span>Istilah Penting pada Bagian Ini:</span>
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-2 text-xs">
-                      {sec.glossary.map((glo, gIdx) => (
-                        <div key={gIdx} className="rounded-lg bg-canvas/60 p-3 border border-line-subtle">
-                          <span className="font-bold text-ink block text-sm">
-                            {glo.term}
-                          </span>
-                          <p className="mt-1 text-muted leading-relaxed">
-                            {glo.definition}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+          <div className={`mx-auto ${maxLineWidthClass}`}>
+            <article
+              className={`rounded-[24px] border p-6 sm:p-10 md:p-12 space-y-10 transition-all duration-200 ${cardTheme.card}`}
+              style={{
+                fontSize: `${fontSize}px`,
+                lineHeight: lineHeight,
+                letterSpacing: `${letterSpacing}em`,
+              }}
+            >
+              {/* Header Artikel */}
+              <div className={`border-b pb-8 ${cardTheme.divider}`}>
+                <span className={`text-xs font-semibold uppercase tracking-wider ${cardTheme.subtitle}`}>
+                  {lesson.subject} • Pengajar: {lesson.teacherName}
+                </span>
+                <h1 className={`mt-2 font-heading text-3xl font-bold tracking-tight sm:text-4xl ${cardTheme.title}`}>
+                  {lesson.title}
+                </h1>
+                {lesson.description && (
+                  <p className={`mt-3 text-base leading-relaxed ${cardTheme.subtitle}`}>
+                    {lesson.description}
+                  </p>
                 )}
-              </section>
-            ))}
+              </div>
 
-            <div className="pt-8 border-t border-line text-center">
-              <Button variant="primary" size="lg" asChild>
-                <Link href={`/siswa/kelas/${classId}`}>
-                  <CheckCircle className="size-4" aria-hidden="true" />
-                  <span>Selesai Membaca & Kembali ke Kelas</span>
-                </Link>
-              </Button>
-            </div>
-          </article>
+              {/* Bagian per Bagian */}
+              {lesson.content.sections.map((sec, sIdx) => (
+                <section key={sec.id} className="space-y-6">
+                  <div className={`flex items-center gap-3 border-b pb-3 ${cardTheme.divider}`}>
+                    <span className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${cardTheme.sectionBadge}`}>
+                      {sIdx + 1}
+                    </span>
+                    <h2 className={`font-heading text-xl sm:text-2xl font-bold tracking-tight ${cardTheme.heading}`}>
+                      {sec.title}
+                    </h2>
+                  </div>
+
+                  {/* Paragraf Bacaan (Original vs Easy Read) */}
+                  <div className="space-y-4">
+                    {easyRead ? (
+                      <div className="space-y-3">
+                        {sec.easyRead.map((er, idx) => (
+                          <p key={idx} className="flex items-start gap-3">
+                            <span className={`mt-2 size-2 rounded-full shrink-0 ${cardTheme.easyReadDot}`} />
+                            <span className="leading-relaxed">{er.text}</span>
+                          </p>
+                        ))}
+                      </div>
+                    ) : (
+                      sec.standard.map((std, idx) => (
+                        <p key={idx} className="leading-relaxed">
+                          {std.text}
+                        </p>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Glosarium Istilah Terkait */}
+                  {sec.glossary.length > 0 && (
+                    <div className={`mt-6 rounded-xl border p-5 ${cardTheme.glossaryCard}`}>
+                      <div className="flex items-center gap-2 text-xs font-bold mb-3">
+                        <HelpCircle className="size-4 text-primary" aria-hidden="true" />
+                        <span className={cardTheme.heading}>Istilah Penting pada Bagian Ini:</span>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2 text-xs">
+                        {sec.glossary.map((glo, gIdx) => (
+                          <div
+                            key={gIdx}
+                            className={`rounded-lg p-3 border ${
+                              theme === "high-contrast"
+                                ? "bg-black/50 border-white/10"
+                                : "bg-canvas/60 border-line-subtle"
+                            }`}
+                          >
+                            <span className={`font-bold block text-sm ${cardTheme.glossaryTerm}`}>
+                              {glo.term}
+                            </span>
+                            <p className={`mt-1 leading-relaxed ${cardTheme.glossaryDef}`}>
+                              {glo.definition}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+              ))}
+
+              {/* Box Selesai Membaca di Bawah Artikel */}
+              <div className={`rounded-xl border p-5 flex flex-col sm:flex-row items-center justify-between gap-4 ${cardTheme.completeBox}`}>
+                <div>
+                  <p className={`text-sm font-bold ${cardTheme.heading}`}>
+                    Selesai Membaca Materi Ini?
+                  </p>
+                  <p className={`text-xs ${cardTheme.subtitle}`}>
+                    Progres membacamu tersimpan otomatis. Kamu bisa kembali ke kelas untuk membaca materi lain.
+                  </p>
+                </div>
+
+                <Button
+                  variant="primary"
+                  size="md"
+                  asChild
+                  className="gap-2 bg-emerald hover:bg-emerald/90 text-white font-semibold shadow-xs shrink-0"
+                >
+                  <Link href={`/siswa/kelas/${classId}`}>
+                    <CheckCircle className="size-4" aria-hidden="true" />
+                    <span>Selesai Membaca</span>
+                  </Link>
+                </Button>
+              </div>
+            </article>
+          </div>
         )}
       </main>
     </div>
