@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, Users, FolderPlus, Plus } from "lucide-react";
+import { ArrowRight, BookOpen, Users, FolderPlus, Plus, Trash2 } from "lucide-react";
 import { requireRole } from "@/server/auth/guards";
 import { listClassesForTeacher } from "@/server/services/classes.service";
 import { formatJoinCode } from "@/shared/schemas/auth-classes";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { DeleteClassModal } from "@/components/teacher/delete-class-modal";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
@@ -123,12 +124,31 @@ export default async function TeacherHomePage() {
                       </span>
                     </div>
 
-                    <Button variant="secondary" size="sm" asChild className="h-8.5 px-3.5 text-xs font-semibold cursor-pointer">
-                      <Link href={`/guru/kelas/${cls.id}`}>
-                        <span>Buka</span>
-                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                      </Link>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <DeleteClassModal
+                        classId={cls.id}
+                        className={cls.name}
+                        studentCount={cls.studentCount}
+                        materialCount={cls.publishedCount}
+                        csrfToken={session.csrfToken}
+                        trigger={
+                          <button
+                            type="button"
+                            title={`Hapus kelas ${cls.name}`}
+                            className="flex size-8 items-center justify-center rounded-lg border border-transparent text-muted hover:border-danger/25 hover:bg-danger/10 hover:text-danger active:bg-danger/20 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="size-4" />
+                            <span className="sr-only">Hapus kelas {cls.name}</span>
+                          </button>
+                        }
+                      />
+                      <Button variant="secondary" size="sm" asChild className="h-8.5 px-3.5 text-xs font-semibold cursor-pointer">
+                        <Link href={`/guru/kelas/${cls.id}`}>
+                          <span>Buka</span>
+                          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

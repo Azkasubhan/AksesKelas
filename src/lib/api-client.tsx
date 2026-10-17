@@ -48,7 +48,7 @@ export function getCsrfToken(): string {
 
 export async function apiFetch<T = unknown>(
   path: string,
-  opts: { method?: "GET" | "POST" | "PATCH" | "PUT"; body?: unknown; csrfToken?: string } = {},
+  opts: { method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"; body?: unknown; csrfToken?: string } = {},
 ): Promise<T> {
   const method = opts.method ?? "GET";
   const csrf = opts.csrfToken || (method !== "GET" ? getCsrfToken() : undefined);

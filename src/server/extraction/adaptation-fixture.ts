@@ -8,208 +8,162 @@ interface SourceBlockRef {
 }
 
 /**
- * Menghasilkan struktur adaptasi multi-modal awal (Milestone 2 fixture generator).
- * Memecah materi menjadi bagian-bagian terstruktur dengan:
- * - Teks Standard
- * - Teks Easy Read
- * - Paired Focus Cards (originalText & easyText)
- * - Glosarium istilah sulit
+ * Menghasilkan adaptasi multi-modal terstruktur langsung dari blok sumber teks asli.
+ * Menganalisis paragraf, membagi ke bagian-bagian topik, menghasilkan kalimat Easy Read,
+ * kartu konsep (Focus Cards), dan mengekstrak istilah glosarium dari konten sumber.
  */
 export function buildInitialAdaptation(
   title: string,
   blocks: SourceBlockRef[],
 ): DraftContentDto {
-  // Jika blok lebih dari 4, pecah menjadi 2 bagian untuk pengalaman adaptasi yang realistis
-  const midPoint = Math.ceil(blocks.length / 2);
-  const part1Blocks = blocks.slice(0, midPoint);
-  const part2Blocks = blocks.slice(midPoint);
-
-  const sections: SectionDto[] = [];
-
-  // Bagian 1
-  if (part1Blocks.length > 0) {
-    const sec1Id = randomUUID();
-    const sec1Refs = part1Blocks.map((b) => b.id);
-
-    sections.push({
-      id: sec1Id,
-      key: "sec_1",
-      revision: 1,
-      title: blocks.length > 3 ? "Bagian 1: Kerongkongan dan Gerak Peristaltik" : title,
-      sourceRefs: sec1Refs,
-      standard: part1Blocks.map((b) => ({ text: b.text, sourceRefs: [b.id] })),
-      easyRead: [
-        {
-          text: "Setelah dikunyah di mulut, makanan berubah menjadi gumpalan lembut bernama bolus.",
-          sourceRefs: [part1Blocks[0].id],
-        },
-        {
-          text: "Kerongkongan adalah saluran otot yang menyambungkan mulut ke lambung.",
-          sourceRefs: [part1Blocks[0].id],
-        },
-        {
-          text: "Otot kerongkongan meremas dan mendorong makanan secara bergelombang. Gerakan ini dinamakan gerak peristaltik.",
-          sourceRefs: part1Blocks[1] ? [part1Blocks[1].id] : [part1Blocks[0].id],
-        },
-        {
-          text: "Pintu klep di ujung bawah kerongkongan menjaga agar makanan dan asam tidak naik kembali ke atas.",
-          sourceRefs: part1Blocks[2] ? [part1Blocks[2].id] : [part1Blocks[0].id],
-        },
-      ],
-      cards: [
-        {
-          id: randomUUID(),
-          key: "card_1_bolus",
-          kind: "concept",
-          title: "Dari Mulut ke Kerongkongan",
-          originalText:
-            "Makanan yang telah dikunyah dan bercampur air liur membentuk bolus, lalu ditelan masuk ke kerongkongan (saluran tabung berotot sepanjang ±25 cm).",
-          easyText:
-            "Makanan yang sudah dikunyah menjadi gumpalan lembut (bolus). Gumpalan ini lalu ditelan ke kerongkongan.",
-          sourceRefs: [part1Blocks[0].id],
-        },
-        {
-          id: randomUUID(),
-          key: "card_1_peristaltik",
-          kind: "concept",
-          title: "Gerak Peristaltik Otot",
-          originalText:
-            "Dinding otot kerongkongan berkontraksi dan berelaksasi secara bergelombang (gerak peristaltik) untuk mendorong makanan menuju lambung secara aktif.",
-          easyText:
-            "Otot kerongkongan meremas dan bergerak seperti gelombang untuk mendorong makanan ke bawah menuju lambung.",
-          sourceRefs: part1Blocks[1] ? [part1Blocks[1].id] : [part1Blocks[0].id],
-        },
-        {
-          id: randomUUID(),
-          key: "card_1_recap",
-          kind: "recap",
-          title: "Poin Kunci Bagian 1",
-          originalText:
-            "Makanan didorong oleh gerak peristaltik kerongkongan melewati pintu klep sfingter menuju organ lambung.",
-          easyText:
-            "Kerongkongan mendorong makanan ke lambung dengan gerakan otot teratur.",
-          sourceRefs: sec1Refs,
-        },
-      ],
-      glossary: [
-        {
-          term: "Bolus",
-          definition: "Gumpalan makanan lunak hasil kunyahan di dalam mulut yang siap ditelan.",
-          sourceRefs: [part1Blocks[0].id],
-        },
-        {
-          term: "Gerak Peristaltik",
-          definition:
-            "Gerakan memijat dan meremas yang dilakukan dinding otot saluran pencernaan untuk mendorong makanan.",
-          sourceRefs: part1Blocks[1] ? [part1Blocks[1].id] : [part1Blocks[0].id],
-        },
-        {
-          term: "Sfingter",
-          definition: "Otot cincin yang berfungsi sebagai klep atau pintu buka-tutup satu arah.",
-          sourceRefs: part1Blocks[2] ? [part1Blocks[2].id] : [part1Blocks[0].id],
-        },
-      ],
-      warnings: [],
-    });
+  if (blocks.length === 0) {
+    return { schemaVersion: "1.0", sections: [] };
   }
 
-  // Bagian 2 (jika materi memiliki blok lanjutan)
-  if (part2Blocks.length > 0) {
-    const sec2Id = randomUUID();
-    const sec2Refs = part2Blocks.map((b) => b.id);
-
-    sections.push({
-      id: sec2Id,
-      key: "sec_2",
-      revision: 1,
-      title: "Bagian 2: Fungsi Lambung dan Enzim Pencernaan",
-      sourceRefs: sec2Refs,
-      standard: part2Blocks.map((b) => ({ text: b.text, sourceRefs: [b.id] })),
-      easyRead: [
-        {
-          text: "Lambung adalah kantung berotot di perut sebelah kiri yang menyerupai bentuk huruf J.",
-          sourceRefs: [part2Blocks[0].id],
-        },
-        {
-          text: "Di dalam lambung terjadi dua cara pencernaan: remasan otot (mekanik) dan bantuan zat kimia (kimiawi).",
-          sourceRefs: [part2Blocks[0].id],
-        },
-        {
-          text: "Makanan diaduk sampai menjadi bubur kental bernama kimus.",
-          sourceRefs: part2Blocks[1] ? [part2Blocks[1].id] : [part2Blocks[0].id],
-        },
-        {
-          text: "Cairan lambung berisi asam pembunuh kuman dan enzim pepsin pemecah zat protein.",
-          sourceRefs: part2Blocks[2] ? [part2Blocks[2].id] : [part2Blocks[0].id],
-        },
-      ],
-      cards: [
-        {
-          id: randomUUID(),
-          key: "card_2_lambung",
-          kind: "concept",
-          title: "Organ Lambung",
-          originalText:
-            "Lambung adalah kantung berotot tebal menyerupai huruf J di rongga perut kiri atas tempat berlangsungnya pencernaan mekanik dan kimiawi.",
-          easyText:
-            "Lambung berbentuk seperti huruf J di perut kiri atas. Lambung bertugas mengolah makanan.",
-          sourceRefs: [part2Blocks[0].id],
-        },
-        {
-          id: randomUUID(),
-          key: "card_2_kimus",
-          kind: "concept",
-          title: "Pencernaan Mekanik & Kimus",
-          originalText:
-            "Lapisan otot polos lambung mengaduk dan meremas bolus makanan selama 2–4 jam hingga menjadi bubur kental yang dinamakan kimus (chyme).",
-          easyText:
-            "Otot lambung meremas makanan sampai lembut seperti bubur. Bubur ini disebut kimus.",
-          sourceRefs: part2Blocks[1] ? [part2Blocks[1].id] : [part2Blocks[0].id],
-        },
-        {
-          id: randomUUID(),
-          key: "card_2_getah",
-          kind: "concept",
-          title: "Asam Lambung & Enzim Pepsin",
-          originalText:
-            "Getah lambung menghasilkan Asam Klorida (HCl) untuk membasmi kuman, enzim pepsin untuk mengurai protein, dan lendir pelindung mukus.",
-          easyText:
-            "Cairan lambung sangat asam untuk membunuh kuman. Enzim di lambung membantu mencerna zat protein dari makanan.",
-          sourceRefs: part2Blocks[2] ? [part2Blocks[2].id] : [part2Blocks[0].id],
-        },
-        {
-          id: randomUUID(),
-          key: "card_2_recap",
-          kind: "recap",
-          title: "Poin Kunci Bagian 2",
-          originalText:
-            "Lambung mencerna makanan secara mekanik dan kimiawi menjadi kimus sebelum disalurkan ke usus dua belas jari.",
-          easyText:
-            "Lambung menghaluskan makanan menjadi bubur kental dengan asam dan enzim sebelum diteruskan ke usus.",
-          sourceRefs: sec2Refs,
-        },
-      ],
-      glossary: [
-        {
-          term: "Kimus (Chyme)",
-          definition: "Bentuk makanan yang sudah dilumatkan menjadi bubur kental di dalam lambung.",
-          sourceRefs: part2Blocks[1] ? [part2Blocks[1].id] : [part2Blocks[0].id],
-        },
-        {
-          term: "Asam Klorida (HCl)",
-          definition:
-            "Cairan asam kuat di lambung yang membunuh kuman penyakit pada makanan.",
-          sourceRefs: part2Blocks[2] ? [part2Blocks[2].id] : [part2Blocks[0].id],
-        },
-        {
-          term: "Pepsin",
-          definition: "Enzim di lambung yang memecah molekul protein menjadi bentuk lebih sederhana.",
-          sourceRefs: part2Blocks[2] ? [part2Blocks[2].id] : [part2Blocks[0].id],
-        },
-      ],
-      warnings: [],
-    });
+  // Bagi blok menjadi 1 - 3 bagian proporsional
+  const parts: SourceBlockRef[][] = [];
+  if (blocks.length <= 2) {
+    parts.push(blocks);
+  } else if (blocks.length <= 8) {
+    const mid = Math.ceil(blocks.length / 2);
+    parts.push(blocks.slice(0, mid), blocks.slice(mid));
+  } else {
+    const chunkSize = Math.ceil(blocks.length / 3);
+    parts.push(
+      blocks.slice(0, chunkSize),
+      blocks.slice(chunkSize, chunkSize * 2),
+      blocks.slice(chunkSize * 2),
+    );
   }
+
+  const sections: SectionDto[] = parts.map((partBlocks, pIdx) => {
+    const secId = randomUUID();
+    const secRefs = partBlocks.map((b) => b.id);
+
+    // Judul bagian diambil dari heading/baris pertama jika cocok, atau format Bagian N: Title
+    const firstParagraph = partBlocks[0]?.text.trim() || "";
+    const firstLine = firstParagraph.split("\n")[0].trim();
+    let secTitle = `Bagian ${pIdx + 1}: ${title}`;
+    if (firstLine.length > 4 && firstLine.length < 50 && !firstLine.endsWith(".")) {
+      secTitle = `Bagian ${pIdx + 1}: ${firstLine}`;
+    } else if (parts.length > 1 && pIdx > 0) {
+      secTitle = `Bagian ${pIdx + 1}: Penjelasan Lanjutan ${title}`;
+    }
+
+    // Teks Standard bersumber dari blok teks asli
+    const standard = partBlocks.map((b) => ({ text: b.text, sourceRefs: [b.id] }));
+
+    // Easy Read: Kalimat ringkas dan sederhana dari teks sumber
+    const easyRead: Array<{ text: string; sourceRefs: string[] }> = [];
+    for (const b of partBlocks) {
+      const sentences = b.text
+        .replace(/\n+/g, " ")
+        .split(/(?<=[.!?])\s+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 15 && s.length < 180);
+
+      for (const sent of sentences) {
+        if (easyRead.length < 5) {
+          easyRead.push({
+            text: sent,
+            sourceRefs: [b.id],
+          });
+        }
+      }
+    }
+
+    if (easyRead.length === 0 && partBlocks[0]) {
+      easyRead.push({
+        text: partBlocks[0].text.slice(0, 150) + "...",
+        sourceRefs: [partBlocks[0].id],
+      });
+    }
+
+    // Kartu Konsep (Cards): Konsep utama berpasangan (originalText & easyText)
+    const cards = [];
+    const maxConceptCards = Math.min(partBlocks.length, 3);
+    for (let cIdx = 0; cIdx < maxConceptCards; cIdx++) {
+      const b = partBlocks[cIdx];
+      const sentences = b.text
+        .replace(/\n+/g, " ")
+        .split(/(?<=[.!?])\s+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 10);
+
+      const original = sentences.slice(0, 2).join(" ") || b.text.slice(0, 180);
+      const simplified = sentences[0] || b.text.slice(0, 100);
+
+      // Ambil judul kartu dari kata-kata awal
+      const words = simplified.split(/\s+/).slice(0, 4).join(" ").replace(/[,.:;]+$/, "");
+      const cardTitle = words.length > 3 ? words : `Konsep ${cIdx + 1}`;
+
+      cards.push({
+        id: randomUUID(),
+        key: `card_${pIdx + 1}_${cIdx + 1}`,
+        kind: "concept" as const,
+        title: cardTitle,
+        originalText: original,
+        easyText: simplified,
+        sourceRefs: [b.id],
+      });
+    }
+
+    // Kartu Rekapitulasi (Recap Card)
+    cards.push({
+      id: randomUUID(),
+      key: `card_${pIdx + 1}_recap`,
+      kind: "recap" as const,
+      title: `Poin Kunci Bagian ${pIdx + 1}`,
+      originalText: `Materi pada bagian ini mencakup pemahaman penting terkait topik ${title}.`,
+      easyText: `Poin utama: pelajari dan pahami gagasan di bagian ini sebelum melanjutkan membaca bagian berikutnya.`,
+      sourceRefs: secRefs,
+    });
+
+    // Glosarium: Deteksi istilah penting berbasis pola teks (X: Y atau X adalah/merupakan Y)
+    const glossary: Array<{ term: string; definition: string; sourceRefs: string[] }> = [];
+    for (const b of partBlocks) {
+      // 1. Pola "Istilah: Penjelasan"
+      const colonMatches = b.text.matchAll(/([A-Z][a-zA-Z\s]{2,25}):\s+([^.\n]{10,120})/g);
+      for (const m of colonMatches) {
+        const term = m[1].trim();
+        const def = m[2].trim();
+        if (glossary.length < 4 && !glossary.some((g) => g.term.toLowerCase() === term.toLowerCase())) {
+          glossary.push({
+            term,
+            definition: def.endsWith(".") ? def : `${def}.`,
+            sourceRefs: [b.id],
+          });
+        }
+      }
+
+      // 2. Pola "Istilah adalah / merupakan / ialah ..."
+      const defMatches = b.text.matchAll(/([A-Z][a-zA-Z\s]{2,25})\s+(adalah|merupakan|ialah)\s+([^.\n]{10,120})/g);
+      for (const m of defMatches) {
+        const term = m[1].trim();
+        const def = `${m[2]} ${m[3].trim()}`;
+        if (glossary.length < 4 && !glossary.some((g) => g.term.toLowerCase() === term.toLowerCase())) {
+          glossary.push({
+            term,
+            definition: def.endsWith(".") ? def : `${def}.`,
+            sourceRefs: [b.id],
+          });
+        }
+      }
+    }
+
+    return {
+      id: secId,
+      key: `sec_${pIdx + 1}`,
+      revision: 1,
+      title: secTitle,
+      sourceRefs: secRefs,
+      standard,
+      easyRead,
+      cards,
+      glossary,
+      warnings: [],
+    };
+  });
 
   return {
     schemaVersion: "1.0",

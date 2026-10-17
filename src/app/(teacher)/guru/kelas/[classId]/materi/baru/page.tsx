@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Upload,
   AlignLeft,
-  Sparkles,
   ArrowRight,
   ShieldCheck,
 } from "lucide-react";
@@ -16,7 +15,6 @@ import { Input, Textarea } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { toast } from "@/components/ui/toast";
 import { PdfDropzone } from "@/components/ui/pdf-dropzone";
-import { DEMO_MATERIAL_FIXTURE } from "fixtures/demo/sistem-pencernaan";
 import { createMaterialSchema, MIN_TEXT_CHARS, MAX_TEXT_CHARS } from "@/shared/schemas/materials";
 import { validateWithSchema } from "@/lib/validation";
 import { apiFetch, ApiError, useCsrf } from "@/lib/api-client";
@@ -37,17 +35,6 @@ export default function NewMaterialPage() {
 
   const [loading, setLoading] = React.useState(false);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
-
-  function handleLoadDemoFixture() {
-    setTitle(DEMO_MATERIAL_FIXTURE.title);
-    setSubject(DEMO_MATERIAL_FIXTURE.subject);
-    setDescription(DEMO_MATERIAL_FIXTURE.description);
-    setInputType("text");
-    setText(DEMO_MATERIAL_FIXTURE.text);
-    setConsent(true);
-    setFieldErrors({});
-    toast.info("Contoh materi demo IPA berhasil dimuat!");
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -165,29 +152,16 @@ export default function NewMaterialPage() {
         </nav>
 
         {/* Header Judul Halaman */}
-        <div className="flex flex-col justify-between gap-4 border-b border-line pb-6 sm:flex-row sm:items-start">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Penyusunan Materi Pembelajaran
-            </span>
-            <h1 className="mt-1 font-heading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-              Tambah Materi Baru
-            </h1>
-            <p className="mt-2 text-sm text-muted max-w-xl">
-              Unggah buku/lembar teks PDF atau tempel materi teks. Dokumen akan diekstrak menjadi blok sumber berurutan sebelum adaptasi multi-modal disusun.
-            </p>
-          </div>
-
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={handleLoadDemoFixture}
-            className="self-start gap-1.5 border-primary/30 text-primary bg-primary-subtle/50 hover:bg-primary-subtle"
-          >
-            <Sparkles className="size-3.5" aria-hidden="true" />
-            <span>Muat Contoh Demo IPA</span>
-          </Button>
+        <div className="border-b border-line pb-6">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+            Penyusunan Materi Pembelajaran
+          </span>
+          <h1 className="mt-1 font-heading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+            Tambah Materi Baru
+          </h1>
+          <p className="mt-2 text-sm text-muted max-w-xl">
+            Unggah buku/lembar teks PDF atau tempel materi teks. Dokumen akan diekstrak menjadi blok sumber berurutan sebelum adaptasi multi-modal disusun.
+          </p>
         </div>
 
         {/* Formulir Input Materi */}

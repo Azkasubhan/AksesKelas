@@ -6,6 +6,8 @@ import { getClassForUser, listMembers } from "@/server/services/classes.service"
 import { listMaterialsForClass } from "@/server/services/materials.service";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { JoinCodePanel } from "@/components/teacher/join-code-panel";
+import { DeleteClassModal } from "@/components/teacher/delete-class-modal";
+import { DeleteMaterialModal } from "@/components/teacher/delete-material-modal";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
@@ -65,7 +67,14 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="shrink-0">
+          <div className="shrink-0 flex items-center gap-3">
+            <DeleteClassModal
+              classId={classId}
+              className={cls.name}
+              studentCount={members.length}
+              materialCount={materialsList?.length ?? 0}
+              csrfToken={session.csrfToken}
+            />
             <Button variant="primary" size="md" asChild>
               <Link href={`/guru/kelas/${classId}/materi/baru`}>
                 <Plus className="size-4" aria-hidden="true" />
@@ -160,6 +169,11 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
                       </div>
 
                       <div className="shrink-0 flex items-center gap-2">
+                        <DeleteMaterialModal
+                          materialId={mat.id}
+                          materialTitle={mat.title}
+                          csrfToken={session.csrfToken}
+                        />
                         <Button variant={mat.isPublished ? "secondary" : "primary"} size="sm" asChild className="h-9 px-4 font-semibold cursor-pointer">
                           <Link href={`/guru/materi/${mat.id}`}>
                             <span>{mat.isPublished ? "Lihat & Edit" : "Tinjau Draf"}</span>

@@ -47,11 +47,13 @@ describe("PostgreSQL Integration: Milestone 4 AI Adaptation Pipeline & Jobs", ()
     expect(conf.confirmedAt).toBeDefined();
   });
 
-  it("triggers AI material generation job, records job history, and increments draft revision", async () => {
-    const res = await triggerMaterialGeneration(teacherUser, materialId, {
-      sourceRevisionId,
-      idempotencyKey: `idemp_${Date.now()}`,
-    });
+  it(
+    "triggers AI material generation job, records job history, and increments draft revision",
+    async () => {
+      const res = await triggerMaterialGeneration(teacherUser, materialId, {
+        sourceRevisionId,
+        idempotencyKey: `idemp_${Date.now()}`,
+      });
 
     expect(res.jobId).toBeDefined();
     expect(res.status).toBe("succeeded");
@@ -68,5 +70,5 @@ describe("PostgreSQL Integration: Milestone 4 AI Adaptation Pipeline & Jobs", ()
     expect(draft.revision).toBe(res.draftRevision);
     expect(draft.content.sections.length).toBeGreaterThanOrEqual(2);
     expect(draft.content.sections[0].cards.length).toBeGreaterThan(0);
-  });
+  }, 30000);
 });

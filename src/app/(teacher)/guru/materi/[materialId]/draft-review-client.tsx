@@ -23,6 +23,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DeleteMaterialModal } from "@/components/teacher/delete-material-modal";
 import { toast } from "@/components/ui/toast";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatDate, cn } from "@/lib/utils";
@@ -531,6 +532,13 @@ export function TeacherDraftReviewClient({
                 <span className="hidden sm:inline">{generating ? "Menyusun…" : "Susun Ulang AI"}</span>
               </Button>
             )}
+
+            <DeleteMaterialModal
+              materialId={draft.materialId}
+              materialTitle={draft.materialTitle}
+              csrfToken={csrfToken}
+              redirectUrl={`/guru/kelas/${draft.classId}`}
+            />
 
             {draft.isPublished ? (
               <>

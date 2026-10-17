@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { and, eq, isNull, desc } from "drizzle-orm";
+import { and, eq, isNull, desc, inArray } from "drizzle-orm";
 import { getDb } from "@/server/db/client";
 import {
   classes,
@@ -9,6 +9,9 @@ import {
   sourceRevisions,
   sourceBlocks,
   lessonDrafts,
+  lessonVersions,
+  readingProgress,
+  processingJobs,
   auditEvents,
 } from "@/server/db/schema";
 import { Errors } from "@/server/errors";
@@ -17,7 +20,7 @@ import {
   extractTextSource,
   type ExtractionResult,
 } from "@/server/extraction/source-blocks";
-import { buildInitialAdaptation } from "@/server/extraction/adaptation-fixture";
+import { runFullAdaptation } from "@/server/ai/gemini-adapter";
 import type { SessionUser } from "@/server/auth/session";
 import type {
   CreateMaterialInput,
@@ -78,12 +81,27 @@ export async function createMaterial(
     );
   }
 
-  // 3. Transaksi Database: Masukkan material, source_revision, source_blocks, dan inisialisasi draft
+  // 3. Persiapkan source blocks dan jalankan adaptasi (AI live atau dynamic fixture)
   const materialId = randomUUID();
   const sourceRevisionId = randomUUID();
   const draftId = randomUUID();
   const now = new Date();
 
+  const blockValues = extraction.blocks.map((b, index) => ({
+    id: randomUUID(),
+    sourceRevisionId,
+    ordinal: index,
+    pageNumber: b.pageNumber,
+    text: b.text,
+  }));
+
+  const {
+    content: initialDraftContent,
+    modelId: initialModelId,
+    promptVersion: initialPromptVersion,
+  } = await runFullAdaptation(input.title, blockValues);
+
+  // 4. Transaksi Database: Masukkan material, source_revision, source_blocks, dan inisialisasi draft
   const summary = await db.transaction(async (tx) => {
     // 3a. Insert materials
     await tx.insert(materials).values({
@@ -112,18 +130,9 @@ export async function createMaterial(
     });
 
     // 3c. Insert source_blocks dalam urutan ordinal
-    const blockValues = extraction.blocks.map((b, index) => ({
-      id: randomUUID(),
-      sourceRevisionId,
-      ordinal: index,
-      pageNumber: b.pageNumber,
-      text: b.text,
-    }));
-
     await tx.insert(sourceBlocks).values(blockValues);
 
     // 3d. Inisialisasi draft awal multi-modal (status: review)
-    const initialDraftContent = buildInitialAdaptation(input.title, blockValues);
     await tx.insert(lessonDrafts).values({
       id: draftId,
       materialId,
@@ -132,7 +141,8 @@ export async function createMaterial(
       status: "review",
       content: initialDraftContent,
       approvals: {},
-      promptVersion: "1.0",
+      modelId: initialModelId,
+      promptVersion: initialPromptVersion,
       schemaVersion: "1.0",
       updatedAt: now,
     });
@@ -376,5 +386,103 @@ export async function confirmSourceRevision(
   }
 
   return { confirmedAt: now.toISOString() };
+}
+
+/**
+ * Menghapus materi secara permanen beserta seluruh relasi di dalamnya:
+ * lessonDrafts, lessonVersions, readingProgress, sourceBlocks, sourceRevisions, auditEvents, dan processingJobs.
+ */
+export async function deleteMaterial(
+  user: SessionUser,
+  materialId: string,
+): Promise<{ classId: string; title: string }> {
+  const db = getDb();
+
+  // 1. Verifikasi otorisasi: hanya guru pemilik materi yang dapat menghapus
+  if (user.role !== "teacher") {
+    throw Errors.forbidden("Hanya guru pengajar yang dapat menghapus materi.");
+  }
+
+  const [mat] = await db
+    .select({
+      id: materials.id,
+      title: materials.title,
+      classId: materials.classId,
+      createdBy: materials.createdBy,
+    })
+    .from(materials)
+    .where(eq(materials.id, materialId))
+    .limit(1);
+
+  if (!mat || mat.createdBy !== user.id) {
+    throw Errors.notFound("Materi tidak ditemukan atau Anda bukan pemilik materi ini.");
+  }
+
+  await db.transaction(async (tx) => {
+    // 2. Putus circular foreign key pointer: materials.current_version_id -> lesson_versions.id
+    await tx
+      .update(materials)
+      .set({ currentVersionId: null })
+      .where(eq(materials.id, materialId));
+
+    // 3. Ambil lesson versions untuk materi ini
+    const versions = await tx
+      .select({ id: lessonVersions.id })
+      .from(lessonVersions)
+      .where(eq(lessonVersions.materialId, materialId));
+    const versionIds = versions.map((v) => v.id);
+
+    // 4. Hapus catatan progres membaca murid pada versi materi ini
+    if (versionIds.length > 0) {
+      await tx
+        .delete(readingProgress)
+        .where(inArray(readingProgress.lessonVersionId, versionIds));
+    }
+
+    // 5. Hapus lesson versions (versi materi terbit)
+    await tx
+      .delete(lessonVersions)
+      .where(eq(lessonVersions.materialId, materialId));
+
+    // 6. Hapus lesson drafts
+    await tx
+      .delete(lessonDrafts)
+      .where(eq(lessonDrafts.materialId, materialId));
+
+    // 7. Hapus audit events
+    await tx
+      .delete(auditEvents)
+      .where(eq(auditEvents.materialId, materialId));
+
+    // 8. Hapus processing jobs
+    await tx
+      .delete(processingJobs)
+      .where(eq(processingJobs.materialId, materialId));
+
+    // 9. Ambil ID revisi sumber untuk menghapus blok paragraf sumber
+    const revisions = await tx
+      .select({ id: sourceRevisions.id })
+      .from(sourceRevisions)
+      .where(eq(sourceRevisions.materialId, materialId));
+
+    const revisionIds = revisions.map((r) => r.id);
+    if (revisionIds.length > 0) {
+      await tx
+        .delete(sourceBlocks)
+        .where(inArray(sourceBlocks.sourceRevisionId, revisionIds));
+    }
+
+    // 10. Hapus sourceRevisions
+    await tx
+      .delete(sourceRevisions)
+      .where(eq(sourceRevisions.materialId, materialId));
+
+    // 11. Hapus materi pelajaran
+    await tx
+      .delete(materials)
+      .where(eq(materials.id, materialId));
+  });
+
+  return { classId: mat.classId, title: mat.title };
 }
 

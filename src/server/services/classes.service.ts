@@ -1,9 +1,21 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db/client";
-import { classMemberships, classes, users } from "../db/schema";
+import {
+  auditEvents,
+  classMemberships,
+  classes,
+  lessonDrafts,
+  lessonVersions,
+  materials,
+  processingJobs,
+  readingProgress,
+  sourceBlocks,
+  sourceRevisions,
+  users,
+} from "../db/schema";
 import { AppError, Errors } from "../errors";
 import { consumeRateLimit, LIMITS } from "../auth/rate-limit";
 import type { SessionUser } from "../auth/session";
@@ -207,4 +219,98 @@ export async function listMembers(teacher: SessionUser, classId: string) {
     .innerJoin(users, eq(users.id, classMemberships.studentId))
     .where(eq(classMemberships.classId, classId))
     .orderBy(asc(users.displayName));
+}
+
+/**
+ * Menghapus kelas secara permanen beserta seluruh relasi di dalamnya:
+ * materi, draf, versi terbit, blok sumber, keanggotaan murid, dan progres belajar.
+ */
+export async function deleteClass(teacher: SessionUser, classId: string) {
+  await assertOwner(teacher, classId);
+  const db = getDb();
+
+  await db.transaction(async (tx) => {
+    // 1. Ambil seluruh ID materi yang berada di kelas ini
+    const classMaterials = await tx
+      .select({ id: materials.id })
+      .from(materials)
+      .where(eq(materials.classId, classId));
+
+    const materialIds = classMaterials.map((m) => m.id);
+
+    if (materialIds.length > 0) {
+      // 2. Putus circular foreign key pointer: materials.current_version_id -> lesson_versions.id
+      await tx
+        .update(materials)
+        .set({ currentVersionId: null })
+        .where(eq(materials.classId, classId));
+
+      // 3. Ambil lesson versions untuk materi-materi ini
+      const versions = await tx
+        .select({ id: lessonVersions.id })
+        .from(lessonVersions)
+        .where(inArray(lessonVersions.materialId, materialIds));
+      const versionIds = versions.map((v) => v.id);
+
+      // 4. Hapus catatan progres membaca murid pada versi materi ini
+      if (versionIds.length > 0) {
+        await tx
+          .delete(readingProgress)
+          .where(inArray(readingProgress.lessonVersionId, versionIds));
+      }
+
+      // 5. Hapus lesson versions (versi materi terbit)
+      await tx
+        .delete(lessonVersions)
+        .where(inArray(lessonVersions.materialId, materialIds));
+
+      // 6. Hapus lesson drafts
+      await tx
+        .delete(lessonDrafts)
+        .where(inArray(lessonDrafts.materialId, materialIds));
+
+      // 7. Hapus audit events yang merujuk ke materi-materi ini
+      await tx
+        .delete(auditEvents)
+        .where(inArray(auditEvents.materialId, materialIds));
+
+      // 8. Hapus processing jobs (antrian AI pipeline) untuk materi-materi ini
+      await tx
+        .delete(processingJobs)
+        .where(inArray(processingJobs.materialId, materialIds));
+
+      // 9. Ambil ID revisi sumber untuk menghapus blok paragraf sumber
+      const revisions = await tx
+        .select({ id: sourceRevisions.id })
+        .from(sourceRevisions)
+        .where(inArray(sourceRevisions.materialId, materialIds));
+
+      const revisionIds = revisions.map((r) => r.id);
+      if (revisionIds.length > 0) {
+        await tx
+          .delete(sourceBlocks)
+          .where(inArray(sourceBlocks.sourceRevisionId, revisionIds));
+      }
+
+      // 10. Hapus sourceRevisions
+      await tx
+        .delete(sourceRevisions)
+        .where(inArray(sourceRevisions.materialId, materialIds));
+
+      // 11. Hapus materi pelajaran
+      await tx
+        .delete(materials)
+        .where(eq(materials.classId, classId));
+    }
+
+    // 11. Hapus keanggotaan murid
+    await tx
+      .delete(classMemberships)
+      .where(eq(classMemberships.classId, classId));
+
+    // 12. Terakhir, hapus entitas kelas itu sendiri
+    await tx
+      .delete(classes)
+      .where(eq(classes.id, classId));
+  });
 }

@@ -1,5 +1,5 @@
 import { ok, parseJson, route } from "@/server/api";
-import { getClassForUser, updateClass } from "@/server/services/classes.service";
+import { deleteClass, getClassForUser, updateClass } from "@/server/services/classes.service";
 import { updateClassSchema } from "@/shared/schemas/auth-classes";
 
 export const runtime = "nodejs";
@@ -14,4 +14,9 @@ export const PATCH = route<P>({ auth: "teacher", mutation: true }, async ({ req,
   const body = await parseJson(req, updateClassSchema);
   await updateClass(session!.user, params.classId, body);
   return ok(await getClassForUser(session!.user, params.classId));
+});
+
+export const DELETE = route<P>({ auth: "teacher", mutation: true }, async ({ session, params }) => {
+  await deleteClass(session!.user, params.classId);
+  return ok({ deleted: true });
 });
