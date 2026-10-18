@@ -91,5 +91,5 @@ export function appOrigin(): string {
 
 /** Cookie Secure mengikuti skema APP_URL, bukan NODE_ENV (localhost HTTP eksplisit). */
 export function cookieSecure(): boolean {
-  return getEnv().APP_URL.startsWith("https://");
+  return getEnv().APP_URL.startsWith("https://") || process.env.NODE_ENV === "production";
 }

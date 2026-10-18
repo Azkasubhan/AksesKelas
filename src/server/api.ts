@@ -70,23 +70,42 @@ function checkOrigin(req: NextRequest) {
   const configured = appOrigin();
   if (origin === configured) return;
 
-  // Dalam mode development, toleransi perbedaan penulisan localhost vs 127.0.0.1 pada port yang sama
-  if (getEnv().NODE_ENV === "development") {
-    try {
-      const origUrl = new URL(origin);
-      const confUrl = new URL(configured);
-      const isLoopbackOrig = origUrl.hostname === "localhost" || origUrl.hostname === "127.0.0.1";
-      const isLoopbackConf = confUrl.hostname === "localhost" || confUrl.hostname === "127.0.0.1";
-      if (
-        isLoopbackOrig &&
-        isLoopbackConf &&
-        origUrl.port === confUrl.port &&
-        origUrl.protocol === confUrl.protocol
-      ) {
+  try {
+    const origUrl = new URL(origin);
+
+    // 1. Cek terhadap host / x-forwarded-host dari request yang sama (Same-Host check)
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+    if (host) {
+      const hostName = host.split(":")[0];
+      if (origUrl.host === host || origUrl.hostname === hostName) {
         return;
       }
-    } catch {}
-  }
+    }
+
+    // 2. Cek domain Vercel (production atau preview deployments)
+    if (origUrl.hostname.endsWith(".vercel.app")) {
+      return;
+    }
+
+    // 3. Cek environment VERCEL_URL jika ada
+    const vercelUrl = process.env.VERCEL_URL;
+    if (vercelUrl && (origUrl.hostname === vercelUrl || origUrl.host === vercelUrl)) {
+      return;
+    }
+
+    // 4. Dalam mode development, toleransi perbedaan penulisan localhost vs 127.0.0.1 pada port yang sama
+    const confUrl = new URL(configured);
+    const isLoopbackOrig = origUrl.hostname === "localhost" || origUrl.hostname === "127.0.0.1";
+    const isLoopbackConf = confUrl.hostname === "localhost" || confUrl.hostname === "127.0.0.1";
+    if (
+      isLoopbackOrig &&
+      isLoopbackConf &&
+      origUrl.port === confUrl.port &&
+      origUrl.protocol === confUrl.protocol
+    ) {
+      return;
+    }
+  } catch {}
 
   throw Errors.csrf();
 }
