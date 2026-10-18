@@ -7,9 +7,12 @@ const globalForDb = globalThis as unknown as { __akPool?: Pool };
 
 function createPool(): Pool {
   const env = getEnv();
+  const isLocal =
+    env.DATABASE_URL.includes("localhost") || env.DATABASE_URL.includes("127.0.0.1");
   const pool = new Pool({
     connectionString: env.DATABASE_URL,
     max: env.DB_POOL_MAX,
+    ssl: isLocal ? undefined : { rejectUnauthorized: false },
   });
   pool.on("error", (err) => {
     // Jangan log connection string.
