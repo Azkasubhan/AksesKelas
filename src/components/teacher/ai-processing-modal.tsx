@@ -26,7 +26,7 @@ const CREATE_STEPS: StepItem[] = [
   {
     id: 2,
     label: "Analisis Struktur & Segmentasi Bab",
-    desc: "AI Gemini membagi materi ke dalam bagian bahasan yang teratur.",
+    desc: "AI membagi materi ke dalam bagian bahasan yang teratur.",
   },
   {
     id: 3,
@@ -48,7 +48,7 @@ const REGENERATE_STEPS: StepItem[] = [
   },
   {
     id: 2,
-    label: "Menghubungi AI Gemini untuk Penyusunan Ulang",
+    label: "Menggunakan AI untuk Penyusunan Ulang",
     desc: "Menganalisis kembali struktur dan konteks pembelajaran materi.",
   },
   {

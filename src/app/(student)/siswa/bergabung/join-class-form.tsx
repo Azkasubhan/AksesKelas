@@ -37,15 +37,22 @@ export function JoinClassForm({ csrfToken }: { csrfToken: string }) {
     setLoading(true);
 
     try {
-      const result = await apiFetch<{ class: { id: string; name: string } }>("/classes/join", {
+      const result = await apiFetch<{ id?: string; name?: string; class?: { id: string; name: string } }>("/classes/join", {
         method: "POST",
         body: { code: cleaned },
         csrfToken,
       });
 
-      toast.success(`Berhasil bergabung ke kelas ${result.class.name}! Mengalihkan ke ruang kelas…`);
+      const joinedId = result.id ?? result.class?.id;
+      const joinedName = result.name ?? result.class?.name ?? "kelas";
+
+      toast.success(`Berhasil bergabung ke kelas ${joinedName}! Mengalihkan ke ruang kelas…`);
       setTimeout(() => {
-        router.push(`/siswa/kelas/${result.class.id}`);
+        if (joinedId) {
+          router.push(`/siswa/kelas/${joinedId}`);
+        } else {
+          router.push("/siswa");
+        }
         router.refresh();
       }, 1000);
     } catch (err) {

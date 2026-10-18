@@ -204,7 +204,11 @@ export async function joinClass(student: SessionUser, input: JoinClassInput) {
     .insert(classMemberships)
     .values({ classId: cls.id, studentId: student.id })
     .onConflictDoNothing();
-  return { id: cls.id, name: cls.name };
+  return {
+    id: cls.id,
+    name: cls.name,
+    class: { id: cls.id, name: cls.name },
+  };
 }
 
 export async function listMembers(teacher: SessionUser, classId: string) {

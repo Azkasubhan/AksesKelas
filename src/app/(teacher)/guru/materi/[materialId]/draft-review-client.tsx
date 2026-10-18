@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Clock,
   Send,
-  Eye,
   Edit3,
   BookOpen,
   Sparkles,
@@ -542,18 +541,10 @@ export function TeacherDraftReviewClient({
             />
 
             {draft.isPublished ? (
-              <>
-                <Button variant="secondary" size="md" onClick={handleUnpublish} disabled={unpublishing}>
-                  <RotateCcw className="size-3.5" aria-hidden="true" />
-                  <span>{unpublishing ? "Menarik…" : "Tarik Publikasi"}</span>
-                </Button>
-                <Button variant="primary" size="md" asChild>
-                  <Link href={`/siswa/kelas/${draft.classId}/materi/${draft.materialId}`} target="_blank">
-                    <Eye className="size-3.5" aria-hidden="true" />
-                    <span className="hidden sm:inline">Lihat Reader Siswa</span>
-                  </Link>
-                </Button>
-              </>
+              <Button variant="secondary" size="md" onClick={handleUnpublish} disabled={unpublishing}>
+                <RotateCcw className="size-3.5" aria-hidden="true" />
+                <span>{unpublishing ? "Menarik…" : "Tarik Publikasi"}</span>
+              </Button>
             ) : (
               <Button
                 variant="primary"
