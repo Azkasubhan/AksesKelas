@@ -66,9 +66,6 @@ export default async function LandingPage() {
                     </>
                   )}
                 </div>
-                <p className="mt-6 text-sm text-ink/65 font-medium">
-                  Hasil AI selalu berstatus draf sampai disetujui guru.
-                </p>
               </Reveal>
             </div>
           </section>
