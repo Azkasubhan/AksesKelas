@@ -90,45 +90,15 @@ AI & Heuristic Engine:
 
 ## Arsitektur Sistem (*System Architecture Overview*)
 
-```mermaid
-graph TD
-    subgraph Klien ["Klien (Browser Pengguna)"]
-        TeacherUI["Dasbor Guru\n(Unggah, Review, & Terbitkan)"]
-        StudentUI["Workspace Reader Siswa\n(Standar, Easy Read, Kartu, TTS)"]
-    end
-
-    subgraph ServerApp ["Next.js App Server (Serverless / Node.js)"]
-        AuthModule["Autentikasi & Otorisasi\n(Session Cookies & CSRF Guard)"]
-        Extractor["PDF & Text Extractor\n(unpdf Stream Processing)"]
-        DraftService["Layanan Adaptasi & Draf\n(drafts.service.ts)"]
-        ClassesService["Layanan Manajemen Kelas\n(Crockford Base32 Join Code)"]
-    end
-
-    subgraph AIModule ["Mesin Adaptasi Multi-Modal"]
-        GeminiLive["Google Gemini API\n(Flash / Flash-Lite SDK)"]
-        ModelFallback["Retry & Candidate Switch\n(Transien 503/429 Handling)"]
-        RuleEngine["Deterministic Rule-Based Fallback\n(Regex NLP & Sentence Splitting)"]
-    end
-
-    subgraph StorageLayer ["Penyimpanan Data"]
-        PostgresDB[("PostgreSQL Database\n(Classes, Materials, Drafts, Progress)")]
-    end
-
-    TeacherUI -->|Unggah Dokumen & Review| ServerApp
-    StudentUI -->|Ambil Snapshot Terbit & Preferensi| ServerApp
-    
-    ServerApp --> AuthModule
-    ServerApp --> ClassesService
-    ServerApp --> DraftService
-    
-    Extractor --> DraftService
-    DraftService --> GeminiLive
-    GeminiLive -.->|Jika Overload/Offline| ModelFallback
-    ModelFallback -.->|Jika Gagal Total| RuleEngine
-    
-    DraftService -->|Simpan Transaksi Relasional| PostgresDB
-    ClassesService --> PostgresDB
-```
+<br>
+<div align="center">
+  <img
+    src="public/system-architecture.png"
+    alt="Arsitektur Sistem AksesKelas"
+    style="width:100%; max-width:960px; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);"
+  />
+</div>
+<br>
 
 ---
 
@@ -326,6 +296,6 @@ Ketika guru mengunggah materi ajar (berkas PDF atau teks input):
   <p>Inovator di balik AksesKelas</p>
 </div>
 
-<a href="#"><img width="144px" height="180px" src="public/Muhammad%20Azka%20Subhan.png" alt="Muhammad Azka Subhan" style="object-fit: cover; border-radius: 8px;"/></a> | <a href="#"><img width="144px" height="180px" src="public/Calista%20Sahla.png" alt="Calista Sahla" style="object-fit: cover; border-radius: 8px;"/></a> |
-| --- | --- |
-| <div align="left"><h3><b>Muhammad Azka Subhan</b></h3></div> | <div align="left"><h3><b>Calista Sahla</b></h3></div> |
+| <a href="#"><img width="160" src="public/Muhammad%20Azka%20Subhan.png" alt="Muhammad Azka Subhan" style="border-radius: 8px;"/></a> | <a href="#"><img width="160" src="public/Calista%20Sahla.png" alt="Calista Sahla" style="border-radius: 8px;"/></a> |
+| :---: | :---: |
+| <div align="center"><h3><b>Muhammad Azka Subhan</b></h3></div> | <div align="center"><h3><b>Calista Sahla</b></h3></div> |
