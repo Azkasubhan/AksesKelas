@@ -4,6 +4,8 @@ import { extractText, getDocumentProxy } from "unpdf";
 import { Errors } from "@/server/errors";
 import { MAX_PDF_PAGES, MAX_TEXT_CHARS } from "@/shared/schemas/materials";
 
+import { detectTitleAndSubject, cleanPageRunningHeaders } from "@/shared/utils/title-detector";
+
 export interface ParsedBlock {
   text: string;
   pageNumber: number | null;
@@ -85,6 +87,7 @@ export function splitParagraphsIntoBlocks(
  */
 export async function extractPdfSource(
   buffer: Uint8Array | ArrayBuffer,
+  options?: { knownTitle?: string },
 ): Promise<ExtractionResult> {
   const sha256 = computeSha256(
     Buffer.isBuffer(buffer) ? buffer : Buffer.from(new Uint8Array(buffer)),
@@ -114,9 +117,22 @@ export async function extractPdfSource(
   const allBlocks: ParsedBlock[] = [];
   let totalLength = 0;
 
+  // Deteksi judul dokumen dari halaman pertama untuk pembersihan running header
+  const firstPageDetection = pagesText.length > 0 ? detectTitleAndSubject(pagesText[0] || "") : null;
+  const knownTitle = options?.knownTitle || firstPageDetection?.title;
+
   for (let i = 0; i < pagesText.length; i++) {
     const pageNum = i + 1;
-    const pageContent = pagesText[i] || "";
+    let pageContent = pagesText[i] || "";
+
+    // Bersihkan running header dan nomor halaman pada setiap halaman
+    pageContent = cleanPageRunningHeaders(pageContent, pageNum, knownTitle);
+
+    // Untuk halaman 1, bersihkan baris metadata & judul agar blok pertama berisi konten materi ajar
+    if (pageNum === 1 && firstPageDetection?.cleanedText) {
+      pageContent = firstPageDetection.cleanedText;
+    }
+
     totalLength += pageContent.trim().length;
 
     const pageBlocks = splitParagraphsIntoBlocks(pageContent, pageNum);
@@ -147,15 +163,22 @@ export async function extractPdfSource(
 /**
  * Ekstraksi dari teks yang ditempel langsung oleh guru.
  */
-export function extractTextSource(rawText: string): ExtractionResult {
+export function extractTextSource(
+  rawText: string,
+  options?: { knownTitle?: string },
+): ExtractionResult {
   const normalized = normalizeSourceText(rawText);
-  const blocks = splitParagraphsIntoBlocks(normalized, 1);
-  const sha256 = computeSha256(normalized);
+  // Bersihkan duplikasi judul atau running header jika ada
+  const detection = detectTitleAndSubject(normalized);
+  const contentToSplit = detection.cleanedText || normalized;
+
+  const blocks = splitParagraphsIntoBlocks(contentToSplit, 1);
+  const sha256 = computeSha256(contentToSplit);
 
   return {
     blocks,
     pageCount: 1,
-    totalChars: normalized.length,
+    totalChars: contentToSplit.length,
     sha256,
   };
 }

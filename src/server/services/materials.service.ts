@@ -66,13 +66,13 @@ export async function createMaterial(
     if (!options?.fileBuffer || options.fileBuffer.length === 0) {
       throw Errors.badRequest("Berkas PDF tidak disertakan atau kosong.");
     }
-    extraction = await extractPdfSource(options.fileBuffer);
+    extraction = await extractPdfSource(options.fileBuffer, { knownTitle: input.title });
     filename = options.originalFilename ?? "materi.pdf";
   } else {
     if (!input.text || input.text.trim().length === 0) {
       throw Errors.badRequest("Teks materi wajib diisi.");
     }
-    extraction = extractTextSource(input.text);
+    extraction = extractTextSource(input.text, { knownTitle: input.title });
   }
 
   if (extraction.blocks.length === 0) {

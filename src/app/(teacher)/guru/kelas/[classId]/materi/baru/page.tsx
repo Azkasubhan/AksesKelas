@@ -9,6 +9,8 @@ import {
   AlignLeft,
   ArrowRight,
   ShieldCheck,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -18,6 +20,8 @@ import { PdfDropzone } from "@/components/ui/pdf-dropzone";
 import { createMaterialSchema, MIN_TEXT_CHARS, MAX_TEXT_CHARS } from "@/shared/schemas/materials";
 import { validateWithSchema } from "@/lib/validation";
 import { apiFetch, ApiError, useCsrf } from "@/lib/api-client";
+import { AiProcessingModal } from "@/components/teacher/ai-processing-modal";
+import { detectTitleAndSubject } from "@/shared/utils/title-detector";
 
 export default function NewMaterialPage() {
   const params = useParams();
@@ -34,7 +38,123 @@ export default function NewMaterialPage() {
   const [consent, setConsent] = React.useState(false);
 
   const [loading, setLoading] = React.useState(false);
+  const [isDetectingPdf, setIsDetectingPdf] = React.useState(false);
+  const [detectedNotice, setDetectedNotice] = React.useState<{
+    title: string | null;
+    subject: string | null;
+  } | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
+
+  // Deteksi otomatis Judul & Mapel saat menempelkan (paste) teks pembelajaran
+  function handleTextPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const pasted = e.clipboardData.getData("text");
+    if (!pasted || pasted.trim().length === 0) return;
+
+    const result = detectTitleAndSubject(pasted);
+    let autoFilled = false;
+
+    if (result.title) {
+      setTitle((prev) => (prev.trim() === "" ? result.title! : prev));
+      autoFilled = true;
+    }
+    if (result.subject) {
+      setSubject((prev) => (prev.trim() === "" ? result.subject! : prev));
+      autoFilled = true;
+    }
+
+    // Jika header/judul dibersihkan dari teks materi
+    if (result.cleanedText && result.cleanedText !== pasted) {
+      e.preventDefault();
+      setText((prev) => {
+        if (!prev || prev.trim() === "") return result.cleanedText;
+        return prev + "\n\n" + result.cleanedText;
+      });
+      setDetectedNotice({
+        title: result.title,
+        subject: result.subject,
+      });
+      toast.success("Judul & Mata Pelajaran terdeteksi otomatis. Header dibersihkan dari isi materi.");
+      return;
+    }
+
+    if (autoFilled) {
+      setDetectedNotice({
+        title: result.title,
+        subject: result.subject,
+      });
+      toast.success("Judul & Mata Pelajaran terdeteksi otomatis dari teks.");
+    }
+  }
+
+  // Deteksi manual dari teks yang sudah ada di textarea
+  function handleManualDetect() {
+    if (!text || text.trim().length === 0) {
+      toast.warning("Tempelkan teks materi pembelajaran terlebih dahulu.");
+      return;
+    }
+    const result = detectTitleAndSubject(text);
+    if (!result.title && !result.subject) {
+      toast.info("Tidak terdeteksi pola judul atau mata pelajaran khusus di awal teks.");
+      return;
+    }
+
+    if (result.title) setTitle(result.title);
+    if (result.subject) setSubject(result.subject);
+    if (result.cleanedText) setText(result.cleanedText);
+
+    setDetectedNotice({
+      title: result.title,
+      subject: result.subject,
+    });
+    toast.success("Judul & Mata Pelajaran berhasil diperbarui dari teks.");
+  }
+
+  // Deteksi otomatis Judul & Mapel saat mengunggah dokumen PDF
+  async function handlePdfSelect(file: File | null) {
+    setPdfFile(file);
+    if (!file) return;
+
+    setIsDetectingPdf(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/v1/materials/detect-title", {
+        method: "POST",
+        headers: {
+          ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
+        },
+        body: formData,
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const detected = json?.data;
+        let updated = false;
+
+        if (detected?.title && (!title || title.trim() === "")) {
+          setTitle(detected.title);
+          updated = true;
+        }
+        if (detected?.subject && (!subject || subject.trim() === "")) {
+          setSubject(detected.subject);
+          updated = true;
+        }
+
+        if (updated) {
+          setDetectedNotice({
+            title: detected.title,
+            subject: detected.subject,
+          });
+          toast.success("Judul & Mata Pelajaran berhasil terdeteksi otomatis dari berkas PDF.");
+        }
+      }
+    } catch (err) {
+      console.debug("Gagal mendeteksi judul dari PDF:", err);
+    } finally {
+      setIsDetectingPdf(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -98,11 +218,16 @@ export default function NewMaterialPage() {
         }
 
         toast.success("Materi pembelajaran berhasil ditambahkan!");
-        router.push(`/guru/kelas/${classId}`);
+        const materialId = json?.data?.id;
+        if (materialId) {
+          router.push(`/guru/materi/${materialId}`);
+        } else {
+          router.push(`/guru/kelas/${classId}`);
+        }
         router.refresh();
       } else {
         // Unggah via JSON Teks
-        await apiFetch(`/classes/${classId}/materials`, {
+        const created = await apiFetch<{ id: string }>(`/classes/${classId}/materials`, {
           method: "POST",
           body: {
             title,
@@ -116,7 +241,11 @@ export default function NewMaterialPage() {
         });
 
         toast.success("Materi pembelajaran berhasil ditambahkan!");
-        router.push(`/guru/kelas/${classId}`);
+        if (created?.id) {
+          router.push(`/guru/materi/${created.id}`);
+        } else {
+          router.push(`/guru/kelas/${classId}`);
+        }
         router.refresh();
       }
     } catch (err) {
@@ -167,7 +296,15 @@ export default function NewMaterialPage() {
         {/* Formulir Input Materi */}
         <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6" noValidate>
           <div className="rounded-surface border border-line bg-surface p-6 sm:p-8 flex flex-col gap-5">
-            <h2 className="font-heading text-lg font-bold text-ink">Informasi Materi</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="font-heading text-lg font-bold text-ink">Informasi Materi</h2>
+              {isDetectingPdf ? (
+                <span className="inline-flex items-center gap-1.5 text-xs text-primary font-medium">
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                  <span>Mendeteksi info dokumen…</span>
+                </span>
+              ) : null}
+            </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
               <Field
@@ -272,10 +409,24 @@ export default function NewMaterialPage() {
               >
                 {(props) => (
                   <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-xs text-muted">
+                        Tempel teks materi Anda (judul & mapel akan otomatis terdeteksi).
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleManualDetect}
+                        disabled={textLength < 20}
+                        className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        title="Deteksi judul & mata pelajaran dari teks dan bersihkan header dari isi materi"
+                      >
+                      </button>
+                    </div>
                     <Textarea
                       {...props}
                       value={text}
                       onChange={(e) => setText(e.target.value)}
+                      onPaste={handleTextPaste}
                       placeholder="Tempelkan isi buku pelajaran atau lembar materi di sini (minimal 200 karakter)..."
                       rows={12}
                       className="font-sans leading-relaxed"
@@ -292,10 +443,16 @@ export default function NewMaterialPage() {
             ) : (
               <div className="flex flex-col gap-3">
                 <PdfDropzone
-                  onFileSelect={(file) => setPdfFile(file)}
+                  onFileSelect={handlePdfSelect}
                   selectedFile={pdfFile}
                   errorMessage={fieldErrors.pdf}
                 />
+                {isDetectingPdf ? (
+                  <div className="flex items-center gap-2 rounded-btn bg-surface-subtle p-3 text-xs text-primary font-medium animate-pulse border border-line">
+                    <Loader2 className="size-4 animate-spin text-primary" aria-hidden="true" />
+                    <span>Menganalisis dokumen PDF & mendeteksi judul materi otomatis…</span>
+                  </div>
+                ) : null}
                 <div className="rounded-btn bg-surface-subtle p-3 text-xs text-muted leading-relaxed">
                   <p className="font-semibold text-ink">Catatan Ketentuan Berkas PDF:</p>
                   <ul className="list-disc list-inside mt-1 space-y-0.5">
@@ -346,6 +503,13 @@ export default function NewMaterialPage() {
             </Button>
           </div>
         </form>
+
+        {/* Modal Indikator Proses AI */}
+        <AiProcessingModal
+          open={loading}
+          materialTitle={title}
+          mode="create"
+        />
       </main>
     </div>
   );

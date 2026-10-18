@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DeleteMaterialModal } from "@/components/teacher/delete-material-modal";
+import { AiProcessingModal } from "@/components/teacher/ai-processing-modal";
 import { toast } from "@/components/ui/toast";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatDate, cn } from "@/lib/utils";
@@ -346,7 +347,7 @@ export function TeacherDraftReviewClient({
         ? {
             ...c,
             title: editingCard.title.trim(),
-            originalText: editingCard.originalText.trim(),
+            originalText: (editingCard.originalText || c.originalText || editingCard.easyText).trim(),
             easyText: editingCard.easyText.trim(),
           }
         : c,
@@ -761,7 +762,11 @@ export function TeacherDraftReviewClient({
                     )}
                   </div>
                   <div className="mt-3">
-                    <SourceBlocks blocks={source.blocks} refs={sourceRefsForView} />
+                    <SourceBlocks
+                      blocks={source.blocks}
+                      refs={sourceRefsForView}
+                      highlightText={currentTab === "cards" && card ? card.originalText : undefined}
+                    />
                   </div>
                 </div>
               )}
@@ -832,25 +837,15 @@ export function TeacherDraftReviewClient({
                             />
                           </div>
                           <div className="space-y-1">
-                            <label className="block text-[11px] font-semibold text-muted">Teks original</label>
-                            <textarea
-                              value={editingCard.originalText}
-                              onChange={(e) =>
-                                setEditingCard((prev) => (prev ? { ...prev, originalText: e.target.value } : null))
-                              }
-                              rows={3}
-                              className={fieldClass}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="block text-[11px] font-semibold text-emerald">Varian Easy Read</label>
+                            <label className="block text-[11px] font-semibold text-muted">Isi kartu fokus</label>
                             <textarea
                               value={editingCard.easyText}
                               onChange={(e) =>
                                 setEditingCard((prev) => (prev ? { ...prev, easyText: e.target.value } : null))
                               }
-                              rows={3}
+                              rows={4}
                               className={fieldClass}
+                              placeholder="Tuliskan isi kartu fokus pembelajaran..."
                             />
                           </div>
                           <div className="flex items-center gap-2 pt-1">
@@ -863,17 +858,21 @@ export function TeacherDraftReviewClient({
                           </div>
                         </div>
                       ) : (
-                        <div>
-                          <p className="font-mono text-[11px] text-muted">
-                            {card.kind === "recap" ? "Ringkasan kunci" : `Kartu ${cIdx + 1}`} · {card.kind}
-                          </p>
-                          <h3 className="mt-1 font-heading text-base font-bold text-ink">{card.title}</h3>
-                          <p className="mt-3 text-[11px] font-semibold text-muted">Teks original</p>
-                          <p className="mt-1 text-sm leading-[1.75] text-ink/85">{card.originalText}</p>
-                          <p className="mt-3 text-[11px] font-semibold text-emerald">Varian Easy Read</p>
-                          <p className="mt-1 text-sm leading-[1.75] text-ink">
-                            <mark className="rounded bg-emerald-subtle px-0.5 text-ink">{card.easyText}</mark>
-                          </p>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">
+                              {card.kind === "recap" ? "Ringkasan kunci" : `Kartu ${cIdx + 1}`}
+                            </span>
+                            <span className="rounded bg-surface-subtle border border-line px-1.5 py-0.5 text-[10px] font-medium text-muted">
+                              {card.kind === "recap" ? "Ringkasan" : "Konsep"}
+                            </span>
+                          </div>
+                          <h3 className="font-heading text-lg font-bold text-ink leading-snug">{card.title}</h3>
+                          <div className="rounded-xl border border-line bg-surface p-4 text-sm leading-[1.75] text-ink shadow-xs">
+                            <p className="font-sans leading-relaxed text-ink/90">
+                              {card.easyText || card.originalText}
+                            </p>
+                          </div>
                         </div>
                       )
                     ) : (
@@ -1134,28 +1133,150 @@ export function TeacherDraftReviewClient({
             Draf ini belum memiliki bagian. Gunakan “Susun Ulang AI” untuk membuat adaptasi.
           </div>
         )}
+        {/* Modal Indikator Proses AI saat Susun Ulang */}
+        <AiProcessingModal
+          open={generating}
+          materialTitle={draft.materialTitle}
+          mode="regenerate"
+        />
       </main>
     </div>
   );
 }
 
+function getHighlightRanges(
+  fullText: string,
+  target?: string,
+): { start: number; end: number }[] {
+  if (!target || !target.trim()) return [];
+
+  const cleanTarget = target.trim();
+
+  // 1. Pencarian kecocokan persis (exact match)
+  const exactIdx = fullText.indexOf(cleanTarget);
+  if (exactIdx !== -1) {
+    return [{ start: exactIdx, end: exactIdx + cleanTarget.length }];
+  }
+
+  // 2. Pencarian fleksibel spasi/whitespace
+  try {
+    const escaped = cleanTarget.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regexPattern = escaped.replace(/\s+/g, "\\s+");
+    const regex = new RegExp(regexPattern, "i");
+    const match = regex.exec(fullText);
+    if (match && match.index !== undefined) {
+      return [{ start: match.index, end: match.index + match[0].length }];
+    }
+  } catch {
+    // fallback jika regex gagal
+  }
+
+  // 3. Pencarian berbasis kalimat jika target teks panjang/gabungan klausa
+  const sentences = cleanTarget
+    .split(/(?<=[.!?])\s+|\s*;\s*dan\s+|\s*;\s*/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= 15);
+
+  const ranges: { start: number; end: number }[] = [];
+
+  for (const sentence of sentences) {
+    try {
+      const escaped = sentence.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+      const regex = new RegExp(escaped, "i");
+      const match = regex.exec(fullText);
+      if (match && match.index !== undefined) {
+        ranges.push({ start: match.index, end: match.index + match[0].length });
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (ranges.length > 0) {
+    ranges.sort((a, b) => a.start - b.start);
+    const merged: { start: number; end: number }[] = [ranges[0]];
+    for (let i = 1; i < ranges.length; i++) {
+      const last = merged[merged.length - 1];
+      const cur = ranges[i];
+      if (cur.start <= last.end + 5) {
+        last.end = Math.max(last.end, cur.end);
+      } else {
+        merged.push(cur);
+      }
+    }
+    return merged;
+  }
+
+  return [];
+}
+
+function HighlightedSourceText({
+  text,
+  highlight,
+}: {
+  text: string;
+  highlight?: string;
+}) {
+  const ranges = React.useMemo(() => getHighlightRanges(text, highlight), [text, highlight]);
+
+  if (!ranges.length) {
+    return <span>{text}</span>;
+  }
+
+  const nodes: React.ReactNode[] = [];
+  let lastIndex = 0;
+
+  ranges.forEach((range, idx) => {
+    if (range.start > lastIndex) {
+      nodes.push(text.slice(lastIndex, range.start));
+    }
+    nodes.push(
+      <mark
+        key={idx}
+        className="rounded bg-emerald-subtle px-1.5 py-0.5 font-medium text-ink border border-emerald-border/80 shadow-xs"
+        title="Bagian teks sumber yang diadaptasikan menjadi kartu fokus ini"
+      >
+        {text.slice(range.start, range.end)}
+      </mark>,
+    );
+    lastIndex = range.end;
+  });
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+
+  return <span>{nodes}</span>;
+}
+
 function SourceBlocks({
   blocks,
   refs,
+  highlightText,
 }: {
   blocks: SourceRevisionDetailDto["blocks"];
   refs: string[];
+  highlightText?: string;
 }) {
   const picked = refs.length ? blocks.filter((b) => refs.includes(b.id)) : blocks;
   return (
     <div className="max-h-[46vh] space-y-4 overflow-y-auto pr-2">
       {picked.map((b) => (
         <div key={b.id}>
-          <p className="font-mono text-[11px] text-muted">
-            Blok #{b.ordinal + 1}
-            {b.pageNumber ? ` · Hlm ${b.pageNumber}` : ""}
+          <div className="flex items-center justify-between">
+            <p className="font-mono text-[11px] text-muted">
+              Blok #{b.ordinal + 1}
+              {b.pageNumber ? ` · Hlm ${b.pageNumber}` : ""}
+            </p>
+            {highlightText ? (
+              <span className="text-[10px] font-semibold text-emerald">
+                Teks rujukan aktif disorot
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 text-sm leading-[1.75] text-ink/85">
+            <HighlightedSourceText text={b.text} highlight={highlightText} />
           </p>
-          <p className="mt-1 text-sm leading-[1.75] text-ink/85">{b.text}</p>
         </div>
       ))}
     </div>
