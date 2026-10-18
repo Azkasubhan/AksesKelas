@@ -93,7 +93,7 @@ AI & Heuristic Engine:
 <br>
 <div align="center">
   <img
-    src="public/system-architecture.png"
+    src="public/Arsitektur%20sistem.png"
     alt="Arsitektur Sistem AksesKelas"
     style="width:100%; max-width:960px; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);"
   />
