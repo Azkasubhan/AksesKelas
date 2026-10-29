@@ -48,11 +48,18 @@ export function HeroHeadline({ className }: { className?: string }) {
             })}
 
             {line.underline ? (
-              <svg
+              <motion.svg
                 className="absolute -bottom-2 left-0 w-full text-coral pointer-events-none"
                 viewBox="0 0 250 12"
                 fill="none"
                 preserveAspectRatio="none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{
+                  duration: 0.15,
+                  delay: 0.2 + TOTAL_WORDS * 0.11 + 0.05,
+                  ease: "easeOut",
+                }}
               >
                 <motion.path
                   d="M3 9C60 2 190 2 247 9"
@@ -63,11 +70,11 @@ export function HeroHeadline({ className }: { className?: string }) {
                   animate={{ pathLength: 1 }}
                   transition={{
                     duration: 0.8,
-                    delay: 0.2 + TOTAL_WORDS * 0.11 + 0.1,
+                    delay: 0.2 + TOTAL_WORDS * 0.11 + 0.05,
                     ease: [0.16, 1, 0.3, 1],
                   }}
                 />
-              </svg>
+              </motion.svg>
             ) : null}
           </span>
         </span>

@@ -1,6 +1,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { AppHeader } from "@/components/layout/app-header";
+import { AuthSky } from "./auth-sky";
 
 interface AuthCardLayoutProps {
   title: string;
@@ -18,25 +19,18 @@ export function AuthCardLayout({
   const containerWidthClass = "w-full max-w-md sm:max-w-[460px]";
 
   return (
-    <div className="relative flex min-h-dvh flex-col bg-canvas text-ink">
-      {/* Tekstur Halus Latar Belakang agar tidak kosong/bland */}
-      <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:20px_20px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_45%,#000_30%,transparent_100%)] opacity-70"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-[380px] w-[640px] -translate-x-1/2 bg-[radial-gradient(ellipse_at_top,rgba(33,41,34,0.05)_0%,transparent_70%)] blur-2xl"
-        aria-hidden="true"
-      />
+    <div className="relative flex min-h-dvh flex-col overflow-x-clip bg-canvas text-ink">
+      {/* Latar Belakang: Gradient Biru Bawah & Awan Meluncur Kanan-Kiri */}
+      <AuthSky />
 
       {/* Header Sama Persis dengan Homepage / Front Screen */}
       <AppHeader />
 
       {/* Konten Terpusat di Tengah Layar */}
-      <main id="konten-utama" className="flex flex-1 items-center justify-center p-4 py-8 sm:p-8 sm:py-12">
+      <main id="konten-utama" className="relative z-10 flex flex-1 items-center justify-center p-4 py-8 sm:p-8 sm:py-12">
         <div className={containerWidthClass}>
           {/* Card Pembungkus Form dengan Tinggi Proporsional & Elegan */}
-          <div className="flex min-h-[530px] sm:min-h-[580px] flex-col justify-between rounded-2xl border border-line bg-surface p-8 sm:p-10 shadow-sm">
+          <div className="flex min-h-[530px] sm:min-h-[580px] flex-col justify-between rounded-2xl border border-line bg-surface p-8 sm:p-10 shadow-[0_16px_40px_-16px_rgba(30,60,130,0.12)]">
             <div>
               <div className="mb-6 sm:mb-7">
                 <div className="mb-4">
