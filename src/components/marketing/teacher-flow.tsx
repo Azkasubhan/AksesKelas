@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, useScroll, useSpring } from "motion/react";
-import { Check, FileText } from "lucide-react";
+import { Check } from "lucide-react";
 import { Reveal, TiltIn, EASE_OUT } from "./motion-primitives";
 
 const PANEL =
@@ -19,16 +19,11 @@ function UploadVisual() {
 
   return (
     <div className={PANEL}>
-      <div className="flex items-center gap-3 pb-4">
-        <span className="flex size-10 items-center justify-center rounded-[10px] bg-coral-subtle text-coral">
-          <FileText className="size-5" aria-hidden="true" />
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-ink">Sistem_Pencernaan_Bab4.pdf</p>
-          <p className="text-xs text-muted">8 halaman · teks terbaca</p>
-        </div>
+      <div className="pb-4 border-b border-line/60">
+        <p className="font-mono text-sm font-semibold text-ink">Sistem_Pencernaan_Bab4.pdf</p>
+        <p className="mt-0.5 text-xs text-muted">8 halaman · teks terbaca</p>
       </div>
-      <ul className="space-y-3" aria-label="Contoh tahapan pemrosesan">
+      <ul className="mt-4 space-y-3" aria-label="Contoh tahapan pemrosesan">
         {steps.map((s, i) => (
           <motion.li
             key={s.label}
@@ -42,12 +37,9 @@ function UploadVisual() {
               {s.state === "done" ? (
                 <Check className="size-4 text-emerald" aria-label="Selesai" />
               ) : s.state === "active" ? (
-                <span className="relative flex size-3">
-                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/40" />
-                  <span className="relative inline-flex size-3 rounded-full bg-primary" />
-                </span>
+                <span className="flex size-2 rounded-full bg-primary" />
               ) : (
-                <span className="size-2.5 rounded-full border border-control/50" />
+                <span className="size-2 rounded-full border border-control/40" />
               )}
             </span>
             <span className={s.state === "pending" ? "text-muted" : "font-medium text-ink"}>{s.label}</span>
@@ -63,23 +55,23 @@ function ReviewVisual() {
     <div className={PANEL}>
       <div className="grid gap-5 sm:grid-cols-2 sm:gap-0 sm:divide-x sm:divide-line">
         <div className="sm:pr-5">
-          <p className="text-xs font-semibold text-muted">Sumber</p>
+          <p className="text-xs font-semibold text-muted">Sumber Asli Guru</p>
           <p className="mt-2 text-sm leading-[1.75] text-ink/85">
-            Bolus makanan <mark className="rounded bg-amber-subtle px-0.5 text-ink">didorong oleh gerak peristaltik kerongkongan</mark>{" "}
+            Bolus makanan <mark className="rounded bg-amber-subtle px-1 py-0.5 text-ink font-medium">didorong oleh gerak peristaltik kerongkongan</mark>{" "}
             menuju lambung melalui sfingter esofagus.
           </p>
         </div>
         <div className="sm:pl-5">
-          <p className="text-xs font-semibold text-emerald">Adaptasi</p>
+          <p className="text-xs font-semibold text-emerald">Hasil Adaptasi</p>
           <p className="mt-2 text-sm leading-[1.75] text-ink">
-            Makanan yang sudah dikunyah <mark className="rounded bg-emerald-subtle px-0.5 text-ink">ditelan lewat kerongkongan</mark>, lalu masuk
+            Makanan yang sudah dikunyah <mark className="rounded bg-emerald-subtle px-1 py-0.5 text-ink font-medium">ditelan lewat kerongkongan</mark>, lalu masuk
             ke lambung melalui pintu berotot.
           </p>
         </div>
       </div>
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-4">
-        <p></p>
-        <span className="inline-flex h-9 items-center rounded-[9px] bg-primary px-4 text-[13px] font-semibold text-white">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-2">
+        <span className="text-xs text-muted">Rujukan: Bab 4 · Hal. 14</span>
+        <span className="inline-flex h-9 items-center rounded-[9px] bg-primary px-4 text-[13px] font-semibold text-white shadow-xs">
           Setujui bagian ini
         </span>
       </div>
@@ -90,24 +82,42 @@ function ReviewVisual() {
 function PublishVisual() {
   return (
     <div className={PANEL}>
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-heading text-lg font-bold text-ink">Sistem Pencernaan Manusia</p>
-          <p className="text-sm text-muted">IPA · VIII-A</p>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Kelas IPA VIII-A · 32 Siswa</span>
+          <p className="mt-0.5 font-heading text-lg font-bold text-ink">Sistem Pencernaan Manusia</p>
         </div>
-        <span className="rounded-[8px] bg-emerald-subtle px-2.5 py-1 text-xs font-semibold text-emerald">Diterbitkan</span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-subtle px-2.5 py-1 text-xs font-semibold text-emerald">
+          <span className="size-1.5 rounded-full bg-emerald" />
+          Diterbitkan
+        </span>
       </div>
-      <ul className="mt-5 space-y-2.5 text-sm text-ink">
-        {["Focus Cards", "Easy Read", "Listen"].map((item) => (
-          <li key={item} className="flex items-center gap-2.5">
-            <Check className="size-4 text-emerald" aria-hidden="true" />
-            {item} tersedia untuk murid
-          </li>
-        ))}
-      </ul>
-      <div className="mt-5 flex items-center justify-between rounded-[12px] bg-surface-subtle px-4 py-3">
-        <span className="text-xs text-muted">Kode kelas</span>
-        <span className="font-mono text-sm font-bold tracking-widest text-ink">ZDNQ-GEZH-31JA</span>
+
+      {/* Mode baca yang otomatis aktif */}
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="rounded-lg bg-surface-subtle p-2.5 text-center">
+          <p className="text-xs font-semibold text-ink">Focus Cards</p>
+          <p className="mt-0.5 text-[11px] text-muted">3 kartu berurutan</p>
+        </div>
+        <div className="rounded-lg bg-surface-subtle p-2.5 text-center">
+          <p className="text-xs font-semibold text-ink">Easy Read</p>
+          <p className="mt-0.5 text-[11px] text-muted">Bahasa sederhana</p>
+        </div>
+        <div className="rounded-lg bg-surface-subtle p-2.5 text-center">
+          <p className="text-xs font-semibold text-ink">Listen</p>
+          <p className="mt-0.5 text-[11px] text-muted">Audio peramban</p>
+        </div>
+      </div>
+
+      {/* Kode akses murid */}
+      <div className="mt-4 flex items-center justify-between rounded-xl bg-surface-subtle px-3.5 py-2.5">
+        <div>
+          <span className="block text-[11px] text-muted">Kode gabung siswa</span>
+          <span className="font-mono text-sm font-bold tracking-widest text-ink">ZDNQ-GEZH-31JA</span>
+        </div>
+        <span className="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-ink shadow-xs">
+          Bagikan
+        </span>
       </div>
     </div>
   );

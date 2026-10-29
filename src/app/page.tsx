@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getCurrentSession } from "@/server/auth/session";
 import { AppHeader } from "@/components/layout/app-header";
-import { HeroShaderGradientBackground } from "@/components/marketing/hero-shader-gradient";
+import { HeroSky } from "@/components/marketing/hero-sky";
 import { HeroHeadline } from "@/components/marketing/hero-headline";
 import { ProductStage } from "@/components/marketing/product-stage";
 import { TeacherFlow } from "@/components/marketing/teacher-flow";
@@ -25,9 +25,9 @@ export default async function LandingPage() {
         <AppHeader user={session?.user} csrfToken={session?.csrfToken} />
 
         <main id="konten-utama" className="flex-1">
-          {/* Hero */}
+          {/* Hero dengan motion graphic awan berlayang */}
           <section className="relative flex min-h-[600px] sm:min-h-[680px] flex-col items-center justify-start px-5 pt-16 pb-24 text-center sm:px-8 sm:pt-24 sm:pb-32 lg:pt-28 lg:pb-36">
-            <HeroShaderGradientBackground />
+            <HeroSky />
 
             <div className="relative z-10 mx-auto max-w-4xl">
               <HeroHeadline className="font-heading text-[2.6rem] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-6xl lg:text-7xl" />
@@ -58,7 +58,7 @@ export default async function LandingPage() {
                       <Button
                         variant="ghost"
                         size="lg"
-                        className="h-12 px-7 text-base font-medium text-ink bg-white/60 hover:bg-white/85 border border-white/80 shadow-xs backdrop-blur-md rounded-btn transition-all duration-150"
+                        className="h-12 px-7 text-base font-medium text-ink bg-white/70 hover:bg-white/90 border border-white/80 shadow-xs backdrop-blur-md rounded-btn transition-all duration-150"
                         asChild
                       >
                         <Link href="/login">Masuk sebagai Guru</Link>
@@ -76,7 +76,7 @@ export default async function LandingPage() {
           {/* Closing call to action */}
           <section className="px-5 pb-24 sm:px-8 sm:pb-32">
             <Reveal className="mx-auto max-w-6xl">
-              <div className="rounded-[20px] bg-primary px-7 py-14 text-white sm:px-14 sm:py-20">
+              <div className="rounded-[20px] bg-primary px-7 py-14 text-white sm:px-14 sm:py-20 shadow-[0_20px_40px_-15px_rgba(59,82,212,0.3)]">
                 <h2 className="max-w-2xl font-heading text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
                   Mulai dari satu materi untuk kelas Anda.
                 </h2>
@@ -84,7 +84,7 @@ export default async function LandingPage() {
                   Daftar sebagai guru untuk mengunggah materi pertama, atau masuk sebagai murid dengan kode kelas dari guru.
                 </p>
                 <div className="mt-9 flex flex-wrap items-center gap-3">
-                  <Button variant="coral" size="lg" className="h-12 px-7 text-base" asChild>
+                  <Button variant="light" size="lg" className="h-12 px-7 text-base" asChild>
                     <Link href="/signup">
                       <span>Daftar Akun</span>
                       <ArrowRight className="size-4" aria-hidden="true" />

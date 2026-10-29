@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
-import { AlignLeft, BookOpen, FileText, Headphones } from "lucide-react";
 import { Reveal } from "./motion-primitives";
 
 type LayerId = "asli" | "easy" | "focus" | "listen";
@@ -16,9 +15,6 @@ interface Layer {
   id: LayerId;
   name: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  chip: string;
-  chipText: string;
 }
 
 const LAYERS: Layer[] = [
@@ -26,33 +22,21 @@ const LAYERS: Layer[] = [
     id: "asli",
     name: "Teks asli",
     description: "Sumber guru tetap utuh dan menjadi rujukan bagi setiap adaptasi.",
-    icon: FileText,
-    chip: "bg-surface-inset",
-    chipText: "text-ink",
   },
   {
     id: "easy",
     name: "Easy Read",
     description: "Kalimat dipendekkan dan istilah sulit dijelaskan, tanpa mengubah isi.",
-    icon: AlignLeft,
-    chip: "bg-emerald-subtle",
-    chipText: "text-emerald",
   },
   {
     id: "focus",
     name: "Focus Cards",
     description: "Satu gagasan per kartu, dibaca berurutan dengan Sebelumnya dan Berikutnya.",
-    icon: BookOpen,
-    chip: "bg-primary-subtle",
-    chipText: "text-primary",
   },
   {
     id: "listen",
     name: "Listen",
     description: "Pembacaan bersuara langsung dari peramban, dapat dihentikan kapan saja.",
-    icon: Headphones,
-    chip: "bg-violet-subtle",
-    chipText: "text-violet",
   },
 ];
 
@@ -101,7 +85,7 @@ function CardBody({ id }: { id: LayerId }) {
         {WAVE.map((h, i) => (
           <motion.span
             key={i}
-            className={`w-1 rounded-full ${i < 14 ? "bg-violet" : "bg-violet-border"}`}
+            className={`w-1 rounded-full ${i < 14 ? "bg-primary" : "bg-primary/20"}`}
             style={{ height: h, transformOrigin: "center" }}
             initial={{ scaleY: 0.2 }}
             animate={{ scaleY: 1 }}
@@ -150,9 +134,8 @@ export function ProductStage() {
           </Reveal>
 
           <Reveal delay={0.1} className="mt-8">
-            <div role="group" aria-label="Pilih lapisan bacaan" className="flex flex-col gap-1.5">
+            <div role="group" aria-label="Pilih lapisan bacaan" className="flex flex-col gap-2">
               {LAYERS.map((layer) => {
-                const Icon = layer.icon;
                 const isActive = layer.id === active;
                 return (
                   <button
@@ -160,7 +143,7 @@ export function ProductStage() {
                     type="button"
                     aria-pressed={isActive}
                     onClick={() => setActive(layer.id)}
-                    className="group relative flex min-h-14 items-start gap-3.5 rounded-[12px] px-4 py-3 text-left transition-colors hover:bg-ink/[0.03] focus-visible:outline-focus"
+                    className="group relative flex min-h-14 items-start rounded-[12px] px-4 py-3.5 text-left transition-colors hover:bg-ink/[0.03] focus-visible:outline-focus"
                   >
                     {isActive ? (
                       <motion.span
@@ -169,16 +152,17 @@ export function ProductStage() {
                         transition={{ type: "spring", stiffness: 380, damping: 34 }}
                       />
                     ) : null}
-                    <span
-                      className={`relative mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-[9px] ${layer.chip} ${layer.chipText}`}
-                    >
-                      <Icon className="size-4" aria-hidden="true" />
-                    </span>
-                    <span className="relative">
-                      <span className="block text-[15px] font-semibold text-ink">{layer.name}</span>
+                    <span className="relative z-10">
                       <span
-                        className={`block text-sm leading-relaxed transition-colors ${
-                          isActive ? "text-ink/70" : "text-muted"
+                        className={`block text-base sm:text-[17px] font-bold tracking-tight transition-colors ${
+                          isActive ? "text-ink" : "text-ink/85 group-hover:text-ink"
+                        }`}
+                      >
+                        {layer.name}
+                      </span>
+                      <span
+                        className={`mt-1 block text-sm leading-relaxed transition-colors ${
+                          isActive ? "text-ink/75" : "text-muted group-hover:text-ink/65"
                         }`}
                       >
                         {layer.description}
@@ -204,7 +188,6 @@ export function ProductStage() {
             >
               {LAYERS.map((layer, i) => {
                 const rank = (i - activeIndex + LAYERS.length) % LAYERS.length;
-                const Icon = layer.icon;
                 return (
                   <motion.article
                     key={layer.id}
@@ -221,10 +204,7 @@ export function ProductStage() {
                     }}
                     transition={{ type: "spring", stiffness: 190, damping: 26 }}
                   >
-                    <div
-                      className={`mb-4 inline-flex items-center gap-2 rounded-[8px] px-2.5 py-1 text-xs font-semibold ${layer.chip} ${layer.chipText}`}
-                    >
-                      <Icon className="size-3.5" aria-hidden="true" />
+                    <div className="mb-4 inline-flex items-center rounded-[8px] bg-surface-subtle px-2.5 py-1 text-xs font-semibold text-ink">
                       {layer.name}
                     </div>
                     <CardBody key={rank === 0 ? `${layer.id}-front` : layer.id} id={layer.id} />

@@ -160,6 +160,47 @@ h1, h2, h3, h4 {
   animation: shader-fade-in 1.4s ease-out both;
 }
 
+/* Hero: awan tersebar dan melayang halus (lihat hero-sky.tsx) */
+.cloud-floating {
+  animation: cloud-float var(--float-dur, 16s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+  will-change: transform;
+}
+@keyframes cloud-float {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(14px, -8px, 0);
+  }
+}
+
+.sky-plane {
+  position: absolute;
+  left: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: sky-plane 28s cubic-bezier(0.45, 0.05, 0.35, 1) infinite;
+  animation-delay: 2.2s;
+}
+@keyframes sky-plane {
+  0% { transform: translate3d(-8vw, 60px, 0) rotate(-8deg); opacity: 0; }
+  3% { opacity: 1; }
+  20% { transform: translate3d(28vw, -6px, 0) rotate(4deg); }
+  38% { transform: translate3d(70vw, 26px, 0) rotate(-3deg); opacity: 1; }
+  48% { transform: translate3d(106vw, -20px, 0) rotate(6deg); opacity: 0; }
+  100% { transform: translate3d(106vw, -20px, 0) rotate(6deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud-floating {
+    animation: none !important;
+  }
+  .sky-plane {
+    display: none;
+  }
+}
+
 
 /* Paragraf bacaan yang tenang dan proporsional */
 .editorial-prose {

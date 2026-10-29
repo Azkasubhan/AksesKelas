@@ -9,7 +9,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-[image:var(--grad-brand)] text-on-primary shadow-[0_1px_0_rgba(255,255,255,0.18)_inset,0_2px_6px_rgba(19,23,21,0.18)] hover:brightness-110 hover:shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_8px_20px_-6px_rgba(19,23,21,0.25)] active:scale-[0.98] font-semibold",
+          "bg-primary text-on-primary shadow-xs hover:bg-primary-hover active:scale-[0.98] font-semibold transition-colors",
         coral:
           "bg-coral text-white hover:bg-coral-hover active:scale-[0.98] shadow-md shadow-coral/25 font-semibold",
         accent:
