@@ -6,6 +6,7 @@ import { HeroSky } from "@/components/marketing/hero-sky";
 import { HeroHeadline } from "@/components/marketing/hero-headline";
 import { ProductStage } from "@/components/marketing/product-stage";
 import { TeacherFlow } from "@/components/marketing/teacher-flow";
+import { ClosingBanner } from "@/components/marketing/closing-banner";
 import { MotionProvider, Reveal } from "@/components/marketing/motion-primitives";
 import { Button } from "@/components/ui/button";
 
@@ -73,35 +74,7 @@ export default async function LandingPage() {
           <ProductStage />
           <TeacherFlow />
 
-          {/* Closing call to action */}
-          <section className="px-5 pb-24 sm:px-8 sm:pb-32">
-            <Reveal className="mx-auto max-w-6xl">
-              <div className="rounded-[20px] bg-primary px-7 py-14 text-white sm:px-14 sm:py-20 shadow-[0_20px_40px_-15px_rgba(59,82,212,0.3)]">
-                <h2 className="max-w-2xl font-heading text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
-                  Mulai dari satu materi untuk kelas Anda.
-                </h2>
-                <p className="mt-4 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-                  Daftar sebagai guru untuk mengunggah materi pertama, atau masuk sebagai murid dengan kode kelas dari guru.
-                </p>
-                <div className="mt-9 flex flex-wrap items-center gap-3">
-                  <Button variant="light" size="lg" className="h-12 px-7 text-base" asChild>
-                    <Link href="/signup">
-                      <span>Daftar Akun</span>
-                      <ArrowRight className="size-4" aria-hidden="true" />
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    className="h-12 px-6 text-base text-white hover:bg-white/10 hover:text-white"
-                    asChild
-                  >
-                    <Link href="/login">Masuk</Link>
-                  </Button>
-                </div>
-              </div>
-            </Reveal>
-          </section>
+          <ClosingBanner />
         </main>
 
         <footer className="px-5 pb-10 text-sm text-ink/60 sm:px-8">

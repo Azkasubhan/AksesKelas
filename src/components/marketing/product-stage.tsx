@@ -45,28 +45,43 @@ const WAVE = [10, 18, 28, 16, 34, 22, 40, 26, 14, 30, 38, 20, 12, 28, 36, 18, 24
 function CardBody({ id }: { id: LayerId }) {
   if (id === "asli") {
     return (
-      <>
+      <motion.div
+        key="asli"
+        initial={{ opacity: 0.8, y: 3 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
         <p className="font-heading text-lg font-bold text-ink">Sistem Pencernaan Manusia</p>
         <p className="mt-3 text-[15px] leading-[1.75] text-ink/85">{ORIGINAL}</p>
         <p className="mt-5 font-mono text-[11px] text-muted">Buku IPA VIII · Bab 4 · Hal. 14</p>
-      </>
+      </motion.div>
     );
   }
   if (id === "easy") {
     return (
-      <>
+      <motion.div
+        key="easy"
+        initial={{ opacity: 0.8, y: 3 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
         <p className="font-heading text-lg font-bold text-ink">Makanan Masuk ke Lambung</p>
         <p className="mt-3 text-[17px] leading-[1.8] text-ink">{EASY}</p>
         <p className="mt-5 font-mono text-[11px] text-muted">Merujuk blok sumber 14.1 – 14.2</p>
-      </>
+      </motion.div>
     );
   }
   if (id === "focus") {
     return (
-      <>
+      <motion.div
+        key="focus"
+        initial={{ opacity: 0.8, y: 3 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
         <div className="flex items-center justify-between text-xs text-muted">
           <span className="font-semibold text-ink">Kartu 1 dari 3</span>
-          <span className="rounded-md bg-surface-subtle px-2 py-0.5 font-semibold text-ink">Bolus makanan</span>
+          <span className="font-mono text-[11px] font-medium text-muted">Bolus makanan</span>
         </div>
         <p className="mt-4 font-heading text-xl font-bold text-ink">Makanan Masuk ke Lambung</p>
         <p className="mt-2 text-[17px] leading-[1.75] text-ink">{EASY}</p>
@@ -75,11 +90,16 @@ function CardBody({ id }: { id: LayerId }) {
           <span className="h-1.5 w-3 rounded-full bg-line" />
           <span className="h-1.5 w-3 rounded-full bg-line" />
         </div>
-      </>
+      </motion.div>
     );
   }
   return (
-    <>
+    <motion.div
+      key="listen"
+      initial={{ opacity: 0.8, y: 3 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+    >
       <p className="font-heading text-lg font-bold text-ink">Makanan Masuk ke Lambung</p>
       <div className="mt-5 flex h-12 items-center gap-[3px]" aria-hidden="true">
         {WAVE.map((h, i) => (
@@ -95,7 +115,7 @@ function CardBody({ id }: { id: LayerId }) {
       </div>
       <p className="mt-4 text-[15px] leading-[1.7] text-ink/85">{EASY}</p>
       <p className="mt-4 text-xs text-muted">Suara bahasa Indonesia dari peramban Anda</p>
-    </>
+    </motion.div>
   );
 }
 
@@ -204,9 +224,9 @@ export function ProductStage() {
                     }}
                     transition={{ type: "spring", stiffness: 190, damping: 26 }}
                   >
-                    <div className="mb-4 inline-flex items-center rounded-[8px] bg-surface-subtle px-2.5 py-1 text-xs font-semibold text-ink">
+                    <span className="mb-3 block font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">
                       {layer.name}
-                    </div>
+                    </span>
                     <CardBody key={rank === 0 ? `${layer.id}-front` : layer.id} id={layer.id} />
                   </motion.article>
                 );

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, useScroll, useSpring } from "motion/react";
-import { Check } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { Reveal, TiltIn, EASE_OUT } from "./motion-primitives";
 
 const PANEL =
@@ -80,43 +80,47 @@ function ReviewVisual() {
 }
 
 function PublishVisual() {
+  const modes = [
+    { name: "Focus Cards", detail: "3 kartu berurutan" },
+    { name: "Easy Read", detail: "Bahasa disederhanakan" },
+    { name: "Audio Pendamping", detail: "Bahasa Indonesia" },
+  ];
+
   return (
     <div className={PANEL}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Kelas IPA VIII-A · 32 Siswa</span>
-          <p className="mt-0.5 font-heading text-lg font-bold text-ink">Sistem Pencernaan Manusia</p>
-        </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-subtle px-2.5 py-1 text-xs font-semibold text-emerald">
-          <span className="size-1.5 rounded-full bg-emerald" />
-          Diterbitkan
+      <div>
+        <span className="font-mono text-xs uppercase tracking-wider text-muted">
+          IPA Kelas VIII-A · 32 Siswa
         </span>
+        <p className="mt-1 font-heading text-xl font-bold tracking-tight text-ink">
+          Sistem Pencernaan Manusia
+        </p>
       </div>
 
-      {/* Mode baca yang otomatis aktif */}
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        <div className="rounded-lg bg-surface-subtle p-2.5 text-center">
-          <p className="text-xs font-semibold text-ink">Focus Cards</p>
-          <p className="mt-0.5 text-[11px] text-muted">3 kartu berurutan</p>
-        </div>
-        <div className="rounded-lg bg-surface-subtle p-2.5 text-center">
-          <p className="text-xs font-semibold text-ink">Easy Read</p>
-          <p className="mt-0.5 text-[11px] text-muted">Bahasa sederhana</p>
-        </div>
-        <div className="rounded-lg bg-surface-subtle p-2.5 text-center">
-          <p className="text-xs font-semibold text-ink">Listen</p>
-          <p className="mt-0.5 text-[11px] text-muted">Audio peramban</p>
-        </div>
+      {/* Rincian mode baca yang terbit untuk murid - Seamless tanpa garis tebal */}
+      <div className="mt-5 space-y-2">
+        {modes.map((m) => (
+          <div
+            key={m.name}
+            className="flex items-center justify-between rounded-xl bg-surface-subtle/70 px-4 py-2.5 transition-colors"
+          >
+            <span className="text-sm font-semibold text-ink">{m.name}</span>
+            <span className="font-mono text-xs text-muted">{m.detail}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Kode akses murid */}
-      <div className="mt-4 flex items-center justify-between rounded-xl bg-surface-subtle px-3.5 py-2.5">
+      {/* Kode akses kelas siswa */}
+      <div className="mt-5 flex items-center justify-between rounded-xl bg-surface-subtle px-4 py-3">
         <div>
-          <span className="block text-[11px] text-muted">Kode gabung siswa</span>
-          <span className="font-mono text-sm font-bold tracking-widest text-ink">ZDNQ-GEZH-31JA</span>
+          <span className="block text-[11px] font-medium text-muted">Kode masuk kelas murid</span>
+          <span className="font-mono text-base font-bold tracking-widest text-ink">
+            ZDNQ-GEZH-31JA
+          </span>
         </div>
-        <span className="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-ink shadow-xs">
-          Bagikan
+        <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 text-xs font-medium text-ink shadow-xs">
+          <Copy className="size-3 text-muted" aria-hidden="true" />
+          <span>Salin</span>
         </span>
       </div>
     </div>

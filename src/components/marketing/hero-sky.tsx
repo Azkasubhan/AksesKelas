@@ -272,10 +272,13 @@ export function HeroSky() {
         </motion.div>
       ))}
 
-      {/* 4. Transisi mulus ke kanvas halaman di bawah */}
+      {/* 4. Transisi horizon mulus ke kanvas halaman di bawah */}
       <div
-        className="absolute inset-x-0 bottom-0 h-36"
-        style={{ background: "linear-gradient(to top, var(--canvas) 0%, transparent 100%)" }}
+        className="absolute inset-x-0 bottom-0 h-48 sm:h-64"
+        style={{
+          background:
+            "linear-gradient(to top, var(--canvas) 0%, rgba(250, 248, 245, 0.94) 30%, rgba(250, 248, 245, 0.5) 65%, transparent 100%)",
+        }}
       />
     </div>
   );
