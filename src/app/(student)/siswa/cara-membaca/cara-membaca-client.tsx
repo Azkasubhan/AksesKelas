@@ -2,24 +2,15 @@
 
 import * as React from "react";
 import {
-  BookOpen,
   Check,
-  Headphones,
-  Layers,
   Pause,
   Play,
   RotateCcw,
-  Sliders,
-  Sparkles,
   Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api-client";
-import {
-  createSpeechUtterance,
-  detectLanguage,
-  getLanguageLabel,
-} from "@/lib/speech";
+import { createSpeechUtterance } from "@/lib/speech";
 import type { ReadingPreferencesDto } from "@/shared/schemas/preferences";
 
 interface CaraMembacaClientProps {
@@ -92,6 +83,10 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
   }
 
   function handleResetDefault() {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+    }
     setPreferences(DEFAULT_PREFERENCES);
     persistPreferences(DEFAULT_PREFERENCES);
   }
@@ -198,10 +193,9 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
               }`}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-heading text-sm font-bold text-ink">
-                  <BookOpen className="size-4 text-primary" aria-hidden="true" />
-                  <span>Standard Reading</span>
-                </div>
+                <span className="font-heading text-sm font-bold text-ink">
+                  Standard Reading
+                </span>
                 {preferences.structure === "standard" && (
                   <Check className="size-4 text-primary" aria-hidden="true" />
                 )}
@@ -221,10 +215,9 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
               }`}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-heading text-sm font-bold text-ink">
-                  <Sparkles className="size-4 text-primary" aria-hidden="true" />
-                  <span>Focus Cards</span>
-                </div>
+                <span className="font-heading text-sm font-bold text-ink">
+                  Focus Cards
+                </span>
                 {preferences.structure === "focus" && (
                   <Check className="size-4 text-primary" aria-hidden="true" />
                 )}
@@ -237,7 +230,7 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
         </div>
 
         {/* --------------------------------------------------------- */}
-        {/* B. BAHASA                                                 */}
+        {/* B. BAHASA & KALIMAT                                       */}
         {/* --------------------------------------------------------- */}
         <div className="rounded-[18px] border border-line bg-surface p-5 sm:p-6 shadow-xs space-y-4">
           <div>
@@ -282,10 +275,9 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
               }`}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-heading text-sm font-bold text-ink">
-                  <Layers className="size-3.5 text-primary" aria-hidden="true" />
-                  <span>Easy Read</span>
-                </div>
+                <span className="font-heading text-sm font-bold text-ink">
+                  Easy Read
+                </span>
                 {preferences.easyRead && (
                   <Check className="size-4 text-primary" aria-hidden="true" />
                 )}
@@ -300,7 +292,10 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
         {/* --------------------------------------------------------- */}
         {/* C. TAMPILAN BACAAN                                        */}
         {/* --------------------------------------------------------- */}
-        <div className="rounded-[18px] border border-line bg-surface p-5 sm:p-6 shadow-xs space-y-5">
+        {/* --------------------------------------------------------- */}
+        {/* C. TAMPILAN BACAAN                                        */}
+        {/* --------------------------------------------------------- */}
+        <div className="rounded-[18px] border border-line bg-surface p-5 sm:p-6 shadow-xs space-y-6">
           <div>
             <h2 className="font-heading text-base font-bold text-ink">
               C. Tampilan Bacaan
@@ -310,114 +305,160 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
             </p>
           </div>
 
-          {/* Tema Tampilan */}
-          <div className="space-y-2">
+          {/* Tema Tampilan dengan Swatch Pratinjau */}
+          <div className="space-y-2.5">
             <label className="text-xs font-semibold text-ink">Tema Warna</label>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-3">
               {[
-                { key: "light", label: "Terang", bg: "bg-surface text-ink border-line" },
-                { key: "sepia", label: "Sepia (Hangat)", bg: "bg-[#FBF3E5] text-[#30281F] border-[#DFCFA9]" },
-                { key: "high-contrast", label: "Kontras Gelap", bg: "bg-[#18181b] text-white border-white/20" },
-              ].map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => updatePreference("theme", t.key as ReadingPreferencesDto["theme"])}
-                  className={`rounded-[12px] p-3 text-xs font-semibold border text-center transition-all cursor-pointer ${t.bg} ${
-                    preferences.theme === t.key
-                      ? "ring-2 ring-primary border-primary shadow-xs"
-                      : "opacity-80 hover:opacity-100"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
+                {
+                  key: "light",
+                  label: "Terang",
+                  sub: "Putih bersih",
+                  swatchBg: "bg-surface border-line text-ink",
+                  sampleText: "Aa",
+                },
+                {
+                  key: "sepia",
+                  label: "Sepia",
+                  sub: "Kertas hangat",
+                  swatchBg: "bg-[#FBF3E5] border-[#DFCFA9] text-[#30281F]",
+                  sampleText: "Aa",
+                },
+                {
+                  key: "high-contrast",
+                  label: "Kontras Gelap",
+                  sub: "Latar redup",
+                  swatchBg: "bg-[#18181b] border-white/20 text-white",
+                  sampleText: "Aa",
+                },
+              ].map((t) => {
+                const isSelected = preferences.theme === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() =>
+                      updatePreference("theme", t.key as ReadingPreferencesDto["theme"])
+                    }
+                    className={`flex flex-col items-center justify-between p-3.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-primary bg-primary-subtle/30 ring-2 ring-primary/40 shadow-xs"
+                        : "border-line bg-surface hover:bg-surface-subtle/60"
+                    }`}
+                  >
+                    <div
+                      className={`size-10 rounded-lg border flex items-center justify-center font-heading font-bold text-sm mb-2 shadow-2xs ${t.swatchBg}`}
+                    >
+                      {t.sampleText}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-ink">{t.label}</p>
+                      <p className="text-[10px] text-muted">{t.sub}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Ukuran Huruf */}
+          {/* Ukuran Huruf dengan Segmented Slider Bar */}
           <div className="space-y-2">
-            <div className="flex justify-between text-xs font-semibold text-ink">
-              <span>Ukuran Huruf</span>
-              <span className="font-mono text-muted">{preferences.fontSize} px</span>
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-ink">Ukuran Huruf</span>
+              <span className="font-mono text-primary font-bold text-xs">
+                {preferences.fontSize} px
+              </span>
             </div>
-            <div className="grid grid-cols-5 gap-2">
-              {[18, 20, 22, 24, 28].map((size) => (
-                <button
-                  key={size}
-                  type="button"
-                  onClick={() => updatePreference("fontSize", size)}
-                  className={`rounded-btn py-2 text-xs font-semibold border transition-all cursor-pointer ${
-                    preferences.fontSize === size
-                      ? "bg-primary text-white border-primary shadow-xs"
-                      : "border-line bg-surface text-muted hover:text-ink hover:bg-surface-subtle"
-                  }`}
-                >
-                  {size} px
-                </button>
-              ))}
+            <div className="flex rounded-xl bg-surface-subtle p-1 gap-1 border border-line/60">
+              {[18, 20, 22, 24, 28].map((size) => {
+                const isSelected = preferences.fontSize === size;
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => updatePreference("fontSize", size)}
+                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-muted hover:text-ink hover:bg-surface/60"
+                    }`}
+                  >
+                    {size} px
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Kerapatan Baris */}
+          {/* Kerapatan Baris (Line Height) */}
           <div className="space-y-2">
-            <div className="flex justify-between text-xs font-semibold text-ink">
-              <span>Kerapatan Baris (Line Height)</span>
-              <span className="font-mono text-muted">{preferences.lineHeight}x</span>
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-ink">Kerapatan Baris (Line Height)</span>
+              <span className="font-mono text-primary font-bold text-xs">
+                {preferences.lineHeight}x
+              </span>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex rounded-xl bg-surface-subtle p-1 gap-1 border border-line/60">
               {[
                 { val: 1.5, label: "Rapat (1.5)" },
                 { val: 1.7, label: "Nyaman (1.7)" },
                 { val: 2.0, label: "Lebar (2.0)" },
-              ].map((item) => (
-                <button
-                  key={item.val}
-                  type="button"
-                  onClick={() => updatePreference("lineHeight", item.val)}
-                  className={`rounded-btn py-2 text-xs font-semibold border transition-all cursor-pointer ${
-                    preferences.lineHeight === item.val
-                      ? "bg-primary text-white border-primary shadow-xs"
-                      : "border-line bg-surface text-muted hover:text-ink hover:bg-surface-subtle"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
+              ].map((item) => {
+                const isSelected = preferences.lineHeight === item.val;
+                return (
+                  <button
+                    key={item.val}
+                    type="button"
+                    onClick={() => updatePreference("lineHeight", item.val)}
+                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap text-center ${
+                      isSelected
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-muted hover:text-ink hover:bg-surface/60"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Lebar Bidang Bacaan */}
           <div className="space-y-2">
-            <div className="flex justify-between text-xs font-semibold text-ink">
-              <span>Lebar Teks Bacaan</span>
-              <span className="font-mono text-muted">{preferences.lineWidth} karakter</span>
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-ink">Lebar Teks Bacaan</span>
+              <span className="font-mono text-primary font-bold text-xs">
+                {preferences.lineWidth} karakter
+              </span>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex rounded-xl bg-surface-subtle p-1 gap-1 border border-line/60">
               {[
                 { val: 45, label: "Ramping" },
                 { val: 60, label: "Sedang" },
                 { val: 75, label: "Luas" },
-              ].map((w) => (
-                <button
-                  key={w.val}
-                  type="button"
-                  onClick={() => updatePreference("lineWidth", w.val)}
-                  className={`rounded-btn py-2 text-xs font-semibold border transition-all cursor-pointer ${
-                    preferences.lineWidth === w.val
-                      ? "bg-primary text-white border-primary shadow-xs"
-                      : "border-line bg-surface text-muted hover:text-ink hover:bg-surface-subtle"
-                  }`}
-                >
-                  {w.label}
-                </button>
-              ))}
+              ].map((w) => {
+                const isSelected = preferences.lineWidth === w.val;
+                return (
+                  <button
+                    key={w.val}
+                    type="button"
+                    onClick={() => updatePreference("lineWidth", w.val)}
+                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap text-center ${
+                      isSelected
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-muted hover:text-ink hover:bg-surface/60"
+                    }`}
+                  >
+                    {w.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
 
         {/* --------------------------------------------------------- */}
-        {/* D. AUDIO PENDAMPING                                       */}
+        {/* D. AUDIO PENDAMPING (LISTEN)                              */}
         {/* --------------------------------------------------------- */}
         <div className="rounded-[18px] border border-line bg-surface p-5 sm:p-6 shadow-xs space-y-4">
           <div>
@@ -431,8 +472,8 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
 
           <div className="flex items-center justify-between rounded-[14px] border border-line bg-surface-subtle/50 p-4">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary-subtle text-primary border border-primary/20">
-                <Headphones className="size-4.5" aria-hidden="true" />
+              <div className="flex size-9 items-center justify-center rounded-lg bg-surface border border-line text-ink shrink-0">
+                <Volume2 className="size-4.5" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm font-bold text-ink">
@@ -463,25 +504,35 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
 
           {/* Kecepatan Suara */}
           <div className="space-y-2 pt-1">
-            <div className="flex justify-between text-xs font-semibold text-ink">
-              <span>Kecepatan Pembacaan Suara</span>
-              <span className="font-mono text-muted">{preferences.speechRate}x</span>
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-ink">Kecepatan Pembacaan Suara</span>
+              <span className="font-mono text-primary font-bold text-xs">
+                {preferences.speechRate}x
+              </span>
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              {[0.75, 1, 1.25, 1.5].map((rate) => (
-                <button
-                  key={rate}
-                  type="button"
-                  onClick={() => updatePreference("speechRate", rate)}
-                  className={`rounded-btn py-1.5 text-xs font-semibold border transition-all cursor-pointer ${
-                    preferences.speechRate === rate
-                      ? "bg-primary text-white border-primary shadow-xs"
-                      : "border-line bg-surface text-muted hover:text-ink hover:bg-surface-subtle"
-                  }`}
-                >
-                  {rate}x
-                </button>
-              ))}
+            <div className="flex rounded-xl bg-surface-subtle p-1 gap-1 border border-line/60">
+              {[
+                { rate: 0.75, label: "0.75x" },
+                { rate: 1, label: "1x" },
+                { rate: 1.25, label: "1.25x" },
+                { rate: 1.5, label: "1.5x" },
+              ].map((item) => {
+                const isSelected = preferences.speechRate === item.rate;
+                return (
+                  <button
+                    key={item.rate}
+                    type="button"
+                    onClick={() => updatePreference("speechRate", item.rate)}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-muted hover:text-ink hover:bg-surface/60"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -493,7 +544,7 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
       <div className="lg:col-span-5 sticky top-6 space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-wider text-muted">
-            Pratinjau 
+            Pratinjau
           </p>
         </div>
 
@@ -502,7 +553,7 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
           className={`rounded-[20px] border p-6 sm:p-7 shadow-sm transition-all duration-200 ${themeCardClasses}`}
         >
           {/* Tag Header Preview */}
-          <div className="flex items-center justify-between border-b pb-3 mb-4 opacity-75 text-xs">
+          <div className="flex items-center justify-between border-b pb-3 mb-4 opacity-75 text-xs border-current/15">
             <span className="font-semibold uppercase tracking-wider">
               {preferences.structure === "focus" ? "Mode Focus Cards" : "Mode Standard"}
             </span>
@@ -511,67 +562,73 @@ export function CaraMembacaClient({ initialPreferences, csrfToken }: CaraMembaca
             </span>
           </div>
 
-          {/* Tampilan Konten Sesuai Pengaturan */}
-          {preferences.structure === "focus" ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs opacity-70">
-                <span className="font-semibold">Kartu 1 dari 2</span>
-                <span className="rounded px-2 py-0.5 bg-black/5 dark:bg-white/10 font-mono text-[10px]">
-                  Konsep Inti
-                </span>
-              </div>
-
-              <h3
-                className="font-heading font-bold"
-                style={{ fontSize: `${Math.max(18, preferences.fontSize)}px` }}
-              >
-                {preferences.easyRead ? SAMPLE_EASY.cardTitle : SAMPLE_ORIGINAL.cardTitle}
-              </h3>
-
-              <p
-                style={{
-                  fontSize: `${preferences.fontSize}px`,
-                  lineHeight: preferences.lineHeight,
-                  letterSpacing: `${preferences.letterSpacing}em`,
-                }}
-              >
-                {preferences.easyRead ? SAMPLE_EASY.cardText : SAMPLE_ORIGINAL.cardText}
-              </p>
-
-              {/* Sequential Indicator */}
-              <div className="flex items-center justify-between pt-3 border-t border-current/10">
-                <div className="flex items-center gap-1.5" aria-hidden="true">
-                  <span className="h-1.5 w-6 rounded-full bg-primary" />
-                  <span className="h-1.5 w-2 rounded-full bg-current/20" />
+          {/* Wrapper Konten dengan Lebar Teks Nyata (lineWidth ch) */}
+          <div
+            style={{ maxWidth: `${preferences.lineWidth}ch` }}
+            className="transition-all duration-200"
+          >
+            {/* Tampilan Konten Sesuai Pengaturan */}
+            {preferences.structure === "focus" ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-xs opacity-70">
+                  <span className="font-semibold">Kartu 1 dari 2</span>
+                  <span className="rounded px-2 py-0.5 bg-black/5 dark:bg-white/10 font-mono text-[10px]">
+                    Konsep Inti
+                  </span>
                 </div>
-                <span className="text-xs font-semibold opacity-70">Berikutnya →</span>
+
+                <h3
+                  className="font-heading font-bold"
+                  style={{ fontSize: `${Math.max(18, preferences.fontSize)}px` }}
+                >
+                  {preferences.easyRead ? SAMPLE_EASY.cardTitle : SAMPLE_ORIGINAL.cardTitle}
+                </h3>
+
+                <p
+                  style={{
+                    fontSize: `${preferences.fontSize}px`,
+                    lineHeight: preferences.lineHeight,
+                    letterSpacing: `${preferences.letterSpacing}em`,
+                  }}
+                >
+                  {preferences.easyRead ? SAMPLE_EASY.cardText : SAMPLE_ORIGINAL.cardText}
+                </p>
+
+                {/* Sequential Indicator */}
+                <div className="flex items-center justify-between pt-3 border-t border-current/10">
+                  <div className="flex items-center gap-1.5" aria-hidden="true">
+                    <span className="h-1.5 w-6 rounded-full bg-primary" />
+                    <span className="h-1.5 w-2 rounded-full bg-current/20" />
+                  </div>
+                  <span className="text-xs font-semibold opacity-70">Berikutnya →</span>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <h3
-                className="font-heading font-bold"
-                style={{ fontSize: `${Math.max(18, preferences.fontSize + 2)}px` }}
-              >
-                {preferences.easyRead ? SAMPLE_EASY.title : SAMPLE_ORIGINAL.title}
-              </h3>
+            ) : (
+              <div className="space-y-3">
+                <h3
+                  className="font-heading font-bold"
+                  style={{ fontSize: `${Math.max(18, preferences.fontSize + 2)}px` }}
+                >
+                  {preferences.easyRead ? SAMPLE_EASY.title : SAMPLE_ORIGINAL.title}
+                </h3>
 
-              <p
-                style={{
-                  fontSize: `${preferences.fontSize}px`,
-                  lineHeight: preferences.lineHeight,
-                  letterSpacing: `${preferences.letterSpacing}em`,
-                }}
-              >
-                {preferences.easyRead ? SAMPLE_EASY.body : SAMPLE_ORIGINAL.body}
-              </p>
-            </div>
-          )}
+                <p
+                  style={{
+                    fontSize: `${preferences.fontSize}px`,
+                    lineHeight: preferences.lineHeight,
+                    letterSpacing: `${preferences.letterSpacing}em`,
+                  }}
+                >
+                  {preferences.easyRead ? SAMPLE_EASY.body : SAMPLE_ORIGINAL.body}
+                </p>
+              </div>
+            )}
+          </div>
 
-          {/* Audio Player Preview Bar */}
+          {/* Audio Player Preview Bar yang Menyatu dengan Tema */}
           {preferences.listenEnabled && (
-            <div className="mt-5 flex items-center justify-between rounded-xl bg-primary/10 border border-primary/20 p-2.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+            <div className="mt-5 flex items-center justify-between rounded-xl border border-current/15 bg-black/5 dark:bg-white/5 p-2.5">
+              <div className="flex items-center gap-2 text-xs font-semibold">
                 <Volume2 className="size-4" />
                 <span>Audio Pendamping ({preferences.speechRate}x)</span>
               </div>

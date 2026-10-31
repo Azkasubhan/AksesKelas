@@ -8,20 +8,15 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
-  Headphones,
-  Info,
   Layers,
   Pause,
   Play,
   Sliders,
-  Sparkles,
   Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   createSpeechUtterance,
-  detectLanguage,
-  getLanguageLabel,
   type DetectedLanguage,
 } from "@/lib/speech";
 
@@ -138,16 +133,14 @@ export function JelajahiClient() {
 
   return (
     <div className="space-y-8">
-      {/* Label Simulasi Edukatif */}
-
       {/* Tab Navigasi 5 Cara Membaca */}
       <div className="flex flex-wrap items-center gap-2 border-b border-line pb-4">
         {[
-          { id: "standard", label: "1. Standard Reading", icon: BookOpen },
-          { id: "focus", label: "2. Focus Cards", icon: Sparkles },
-          { id: "easy", label: "3. Easy Read", icon: AlignLeft },
-          { id: "readable", label: "4. Readable Settings", icon: Sliders },
-          { id: "listen", label: "5. Listen (Audio)", icon: Headphones },
+          { id: "standard", label: "Standard Reading", icon: BookOpen },
+          { id: "focus", label: "Focus Cards", icon: Layers },
+          { id: "easy", label: "Easy Read", icon: AlignLeft },
+          { id: "readable", label: "Kenyamanan Visual", icon: Sliders },
+          { id: "listen", label: "Dengarkan Audio", icon: Volume2 },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -162,7 +155,7 @@ export function JelajahiClient() {
                   setIsPlayingAudio(false);
                 }
               }}
-              className={`flex items-center gap-2 rounded-btn px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 rounded-btn px-4 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 isActive
                   ? "bg-primary text-white shadow-xs"
                   : "border border-line bg-surface text-muted hover:text-ink hover:bg-surface-subtle"
@@ -180,8 +173,8 @@ export function JelajahiClient() {
       {/* ========================================================= */}
       {activeTab === "standard" && (
         <div className="space-y-4">
-          <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted">
-            <strong className="text-ink">Struktur Standard Reading:</strong> Materi disajikan mengalir seperti buku teks atau artikel bacaan komprehensif. Cocok untuk siswa yang nyaman membaca teks panjang secara utuh.
+          <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted leading-relaxed">
+            <strong className="text-ink">Format Standard Reading:</strong> Materi disajikan mengalir alami seperti halaman buku teks atau artikel bacaan. Sangat cocok bagi siswa yang terbiasa membaca secara komprehensif dan utuh.
           </div>
 
           <div className="rounded-[20px] border border-line bg-surface p-6 sm:p-8 shadow-xs space-y-4 w-full">
@@ -206,14 +199,14 @@ export function JelajahiClient() {
       {/* ========================================================= */}
       {activeTab === "focus" && (
         <div className="space-y-4">
-          <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted">
-            <strong className="text-ink">Struktur Focus Cards:</strong> Materi dipecah menjadi kartu-kartu berurutan (bukan kuis atau flashcard). Setiap kartu memuat satu gagasan pokok agar siswa dapat fokus mencerna materi tanpa merasa kewalahan.
+          <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted leading-relaxed">
+            <strong className="text-ink">Format Focus Cards:</strong> Materi dibagi menjadi kartu gagasan bertahap. Setiap kartu hanya memuat satu gagasan pokok agar siswa dapat fokus mencerna materi tanpa merasa kewalahan.
           </div>
 
-          <div className="rounded-[20px] border border-primary/30 bg-surface p-6 sm:p-8 shadow-xs w-full space-y-5">
+          <div className="rounded-[20px] border border-line bg-surface p-6 sm:p-8 shadow-xs w-full space-y-5">
             {/* Indikator Langkah Kartu */}
             <div className="flex items-center justify-between border-b border-line pb-3">
-              <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary-subtle px-2 py-0.5 text-xs font-semibold text-primary">
+              <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary-subtle px-2.5 py-1 text-xs font-semibold text-primary">
                 Kartu {currentCardIndex + 1} dari {DEMO_MATERIAL.cards.length}
               </span>
               <span className="text-xs text-muted font-medium">
@@ -249,7 +242,7 @@ export function JelajahiClient() {
                 {DEMO_MATERIAL.cards.map((_, idx) => (
                   <span
                     key={idx}
-                    className={`h-2 rounded-full transition-all ${
+                    className={`h-2 rounded-full transition-all duration-200 ${
                       idx === currentCardIndex
                         ? "w-6 bg-primary"
                         : "w-2 bg-line"
@@ -284,7 +277,7 @@ export function JelajahiClient() {
         <div className="space-y-4">
           <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <strong className="text-ink">Lapisan Easy Read:</strong> Kalimat disederhanakan dan dipersingkat tanpa mengubah makna pembelajaran. Kamu dapat mengaktifkan atau menonaktifkannya kapan saja.
+              <strong className="text-ink">Penyederhanaan Easy Read:</strong> Kalimat dibuat lebih pendek, lugas, dan istilah asing disederhanakan tanpa mengubah esensi pembelajaran.
             </div>
 
             <Button
@@ -301,11 +294,13 @@ export function JelajahiClient() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Kolom Original */}
             <div
-              className={`rounded-[20px] border p-6 shadow-xs space-y-3 transition-opacity ${
-                easyReadActive ? "opacity-60 border-line bg-surface" : "border-primary/40 bg-surface shadow-sm"
+              className={`rounded-[20px] border p-6 shadow-xs space-y-3 transition-all ${
+                !easyReadActive
+                  ? "border-primary bg-primary-subtle/20 ring-1 ring-primary/40 shadow-xs"
+                  : "border-line bg-surface opacity-80"
               }`}
             >
-              <div className="flex items-center justify-between border-b border-line pb-2">
+              <div className="flex items-center justify-between border-b border-line pb-2.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted">
                   Bahasa Original
                 </span>
@@ -316,7 +311,7 @@ export function JelajahiClient() {
               <h3 className="font-heading text-base font-bold text-ink">
                 {DEMO_MATERIAL.title}
               </h3>
-              <div className="space-y-2 text-sm text-ink leading-relaxed">
+              <div className="space-y-2.5 text-sm text-ink leading-relaxed">
                 {DEMO_MATERIAL.originalParagraphs.map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
@@ -325,13 +320,13 @@ export function JelajahiClient() {
 
             {/* Kolom Easy Read */}
             <div
-              className={`rounded-[20px] border p-6 shadow-xs space-y-3 transition-opacity ${
+              className={`rounded-[20px] border p-6 shadow-xs space-y-3 transition-all ${
                 easyReadActive
-                  ? "border-primary bg-primary-subtle/20 ring-1 ring-primary shadow-sm"
-                  : "opacity-60 border-line bg-surface"
+                  ? "border-primary bg-primary-subtle/20 ring-1 ring-primary/40 shadow-xs"
+                  : "border-line bg-surface opacity-80"
               }`}
             >
-              <div className="flex items-center justify-between border-b border-line pb-2">
+              <div className="flex items-center justify-between border-b border-line pb-2.5">
                 <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
                   <Layers className="size-3.5" />
                   <span>Easy Read (Sederhana)</span>
@@ -358,23 +353,28 @@ export function JelajahiClient() {
       {/* ========================================================= */}
       {activeTab === "readable" && (
         <div className="space-y-6">
-          <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted">
-            <strong className="text-ink">Lapisan Readable Settings:</strong> Siswa dapat memilih ukuran huruf, kerapatan baris, dan tema warna sesuai kebutuhan kenyamanan mata masing-masing.
+          <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted leading-relaxed">
+            <strong className="text-ink">Kenyamanan Visual:</strong> Sesuaikan ukuran huruf, tema warna latar, dan kerapatan baris untuk membaca materi dengan nyaman tanpa membuat mata lelah.
           </div>
 
           {/* Kontrol Cepat Playground */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 rounded-[18px] border border-line bg-surface p-5 sm:p-6 shadow-xs">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-[18px] border border-line bg-surface p-5 sm:p-6 shadow-xs">
             {/* Ukuran Huruf */}
-            <div className="space-y-1.5 flex-1 min-w-[180px]">
-              <label className="text-xs font-semibold text-ink">Ukuran Font ({demoFontSize} px)</label>
-              <div className="flex items-center gap-1.5">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink">Ukuran Huruf</span>
+                <span className="font-mono text-primary font-bold">{demoFontSize} px</span>
+              </div>
+              <div className="flex rounded-xl bg-surface-subtle p-1 gap-1 border border-line/60">
                 {[18, 20, 24, 28].map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => setDemoFontSize(s)}
-                    className={`rounded px-2.5 py-1 text-xs font-semibold border transition-all cursor-pointer ${
-                      demoFontSize === s ? "bg-primary text-white border-primary shadow-xs" : "border-line bg-surface hover:bg-surface-subtle"
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      demoFontSize === s
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-muted hover:text-ink hover:bg-surface/60"
                     }`}
                   >
                     {s}px
@@ -384,9 +384,11 @@ export function JelajahiClient() {
             </div>
 
             {/* Tema Warna */}
-            <div className="space-y-1.5 flex-1 min-w-[180px]">
-              <label className="text-xs font-semibold text-ink">Tema Warna</label>
-              <div className="flex items-center gap-1.5">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink">Tema Kertas</span>
+              </div>
+              <div className="flex rounded-xl bg-surface-subtle p-1 gap-1 border border-line/60">
                 {[
                   { key: "light", label: "Terang" },
                   { key: "sepia", label: "Sepia" },
@@ -396,8 +398,10 @@ export function JelajahiClient() {
                     key={t.key}
                     type="button"
                     onClick={() => setDemoTheme(t.key as typeof demoTheme)}
-                    className={`rounded px-2.5 py-1 text-xs font-semibold border transition-all cursor-pointer ${
-                      demoTheme === t.key ? "bg-primary text-white border-primary shadow-xs" : "border-line bg-surface hover:bg-surface-subtle"
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      demoTheme === t.key
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-muted hover:text-ink hover:bg-surface/60"
                     }`}
                   >
                     {t.label}
@@ -407,19 +411,28 @@ export function JelajahiClient() {
             </div>
 
             {/* Jarak Baris */}
-            <div className="space-y-1.5 flex-1 min-w-[180px]">
-              <label className="text-xs font-semibold text-ink">Kerapatan ({demoLineHeight}x)</label>
-              <div className="flex items-center gap-1.5">
-                {[1.5, 1.7, 2.0].map((lh) => (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink">Kerapatan Baris</span>
+                <span className="font-mono text-primary font-bold">{demoLineHeight}x</span>
+              </div>
+              <div className="flex rounded-xl bg-surface-subtle p-1 gap-1 border border-line/60">
+                {[
+                  { val: 1.5, label: "1.5×" },
+                  { val: 1.7, label: "1.7×" },
+                  { val: 2.0, label: "2.0×" },
+                ].map((lh) => (
                   <button
-                    key={lh}
+                    key={lh.val}
                     type="button"
-                    onClick={() => setDemoLineHeight(lh)}
-                    className={`rounded px-2.5 py-1 text-xs font-semibold border transition-all cursor-pointer ${
-                      demoLineHeight === lh ? "bg-primary text-white border-primary shadow-xs" : "border-line bg-surface hover:bg-surface-subtle"
+                    onClick={() => setDemoLineHeight(lh.val)}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      demoLineHeight === lh.val
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-muted hover:text-ink hover:bg-surface/60"
                     }`}
                   >
-                    {lh}x
+                    {lh.label}
                   </button>
                 ))}
               </div>
@@ -427,7 +440,7 @@ export function JelajahiClient() {
           </div>
 
           {/* Area Render */}
-          <div className={`rounded-[20px] border p-6 sm:p-8 shadow-xs w-full transition-all ${themeClasses}`}>
+          <div className={`rounded-[20px] border p-6 sm:p-8 shadow-xs w-full transition-all duration-200 ${themeClasses}`}>
             <h3 className="font-heading font-bold" style={{ fontSize: `${demoFontSize + 2}px` }}>
               {DEMO_MATERIAL.title}
             </h3>
@@ -447,26 +460,23 @@ export function JelajahiClient() {
       {/* ========================================================= */}
       {activeTab === "listen" && (
         <div className="space-y-4">
-          <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted">
-            <strong className="text-ink">Lapisan Audio (Listen):</strong> Memanfaatkan Text-to-Speech langsung dari peramban (Web Speech API) dengan deteksi bahasa otomatis. Teks Indonesia dibacakan dengan suara Indonesia, dan teks Inggris otomatis dibacakan dengan suara Inggris.
+          <div className="rounded-[16px] border border-line bg-surface-subtle/60 p-4 text-xs text-muted leading-relaxed">
+            <strong className="text-ink">Fitur Narasi Audio (Listen):</strong> Memanfaatkan Web Speech API langsung dari browsermu dengan pelafalan suara ramah pendengar. Teks Indonesia otomatis dilafalkan dengan suara berbahasa Indonesia.
           </div>
 
           <div className="rounded-[20px] border border-line bg-surface p-6 sm:p-8 shadow-xs w-full space-y-6">
-            {/* Player Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 rounded-[16px] border border-primary/20 bg-primary-subtle/40 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex size-11 items-center justify-center rounded-xl bg-primary text-white shadow-xs">
-                  <Headphones className="size-5" />
+            {/* Player Toolbar Bersih & Elegan */}
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface-subtle/50 p-4">
+              <div className="flex items-center gap-3.5">
+                <div className="flex size-10 items-center justify-center rounded-xl border border-line bg-surface text-ink shadow-2xs shrink-0">
+                  <Volume2 className="size-5 text-ink/80" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-ink">Pemutar Suara Pelajaran</p>
-                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                    {activeVoiceName && (
-                      <span className="text-[11px] text-muted">
-                        ({activeVoiceName})
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-xs text-muted mt-0.5">
+                    Deteksi Otomatis: Bahasa Indonesia ({detectedSpeechLang})
+                    {activeVoiceName ? ` • ${activeVoiceName}` : ""}
+                  </p>
                 </div>
               </div>
 
@@ -475,16 +485,16 @@ export function JelajahiClient() {
                   variant="primary"
                   size="md"
                   onClick={toggleSpeech}
-                  className="gap-2 h-10 px-5 font-semibold cursor-pointer"
+                  className="gap-2 h-9 px-4 text-xs font-semibold cursor-pointer shadow-xs"
                 >
                   {isPlayingAudio ? (
                     <>
-                      <Pause className="size-4" />
+                      <Pause className="size-3.5" />
                       <span>Jeda Suara</span>
                     </>
                   ) : (
                     <>
-                      <Play className="size-4" />
+                      <Play className="size-3.5" />
                       <span>Putar Pelajaran</span>
                     </>
                   )}
@@ -492,32 +502,43 @@ export function JelajahiClient() {
               </div>
             </div>
 
-            {/* Kecepatan */}
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted font-medium">Kecepatan Bicara:</span>
-              {[0.75, 1, 1.25].map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => {
-                    setSpeechRate(r);
-                    if (isPlayingAudio) {
-                      window.speechSynthesis?.cancel();
-                      setIsPlayingAudio(false);
-                    }
-                  }}
-                  className={`rounded px-2.5 py-1 text-xs font-semibold border cursor-pointer ${
-                    speechRate === r ? "bg-primary text-white border-primary" : "border-line bg-surface"
-                  }`}
-                >
-                  {r}x
-                </button>
-              ))}
+            {/* Kecepatan Suara Berbasis Segmented Pill */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-ink">Kecepatan Pembacaan Suara</span>
+                <span className="font-mono text-primary font-bold">{speechRate}x</span>
+              </div>
+              <div className="flex max-w-sm rounded-xl bg-surface-subtle p-1 gap-1 border border-line/60">
+                {[
+                  { r: 0.75, label: "0.75× Tenang" },
+                  { r: 1, label: "1.0× Normal" },
+                  { r: 1.25, label: "1.25× Cepat" },
+                ].map((item) => (
+                  <button
+                    key={item.r}
+                    type="button"
+                    onClick={() => {
+                      setSpeechRate(item.r);
+                      if (isPlayingAudio) {
+                        window.speechSynthesis?.cancel();
+                        setIsPlayingAudio(false);
+                      }
+                    }}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      speechRate === item.r
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-muted hover:text-ink hover:bg-surface/60"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Teks yang dibaca */}
-            <div className="rounded-[14px] border border-line bg-surface-subtle p-4 text-sm text-ink leading-relaxed">
-              <p className="font-semibold text-xs text-muted mb-1 uppercase tracking-wider">
+            {/* Naskah yang dibaca */}
+            <div className="rounded-xl border border-line bg-surface-subtle/50 p-4 text-sm text-ink leading-relaxed">
+              <p className="font-semibold text-xs text-muted mb-1.5 uppercase tracking-wider">
                 Naskah yang Sedang Dibacakan:
               </p>
               <p>{DEMO_MATERIAL.originalParagraphs[0]}</p>
@@ -543,7 +564,7 @@ export function JelajahiClient() {
           </Button>
           <Button variant="primary" size="sm" asChild className="h-9 px-4 text-xs font-semibold">
             <Link href="/siswa/cara-membaca">
-              <span>Atur Sekarang</span>
+              <span>Atur Cara Membaca</span>
               <ArrowRight className="size-3.5" />
             </Link>
           </Button>

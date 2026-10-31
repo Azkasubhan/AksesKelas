@@ -160,4 +160,23 @@ describe("PostgreSQL Integration: Milestone 2 Draft Review & Publish Vertical Sl
     // Student A cannot access unpublished material anymore
     await expect(getPublishedLesson(studentAUser, materialId)).rejects.toThrow();
   });
+
+  it("teacher can republish previously unpublished material without editing", async () => {
+    const pub = await publishMaterial(teacherUser, materialId, {
+      draftId,
+      expectedRevision: currentDraftRevision,
+    });
+
+    expect(pub.versionId).toBeDefined();
+    expect(pub.versionNumber).toBe(1);
+
+    const draftAfter = await getMaterialDraft(teacherUser, materialId);
+    expect(draftAfter.isPublished).toBe(true);
+    expect(draftAfter.currentVersionId).toBe(pub.versionId);
+
+    // Student A can access again
+    const lesson = await getPublishedLesson(studentAUser, materialId);
+    expect(lesson.title).toBe(DEMO_MATERIAL_FIXTURE.title);
+  });
 });
+

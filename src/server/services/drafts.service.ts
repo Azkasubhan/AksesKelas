@@ -373,59 +373,112 @@ export async function publishMaterial(
       );
     }
 
-    // 4. Cari nomor versi publikasi berikutnya
-    const [latestVersion] = await tx
-      .select({ versionNumber: lessonVersions.versionNumber })
+    // 4. Cek apakah snapshot untuk revisi draf ini sudah pernah dibuat sebelumnya (mis. publikasi ulang setelah unpublish)
+    const [existingVersion] = await tx
+      .select({
+        id: lessonVersions.id,
+        versionNumber: lessonVersions.versionNumber,
+        publishedAt: lessonVersions.publishedAt,
+      })
       .from(lessonVersions)
-      .where(eq(lessonVersions.materialId, materialId))
-      .orderBy(desc(lessonVersions.versionNumber))
+      .where(
+        and(
+          eq(lessonVersions.materialId, materialId),
+          eq(lessonVersions.draftId, draft.id),
+          eq(lessonVersions.draftRevision, draft.revision),
+        ),
+      )
       .limit(1);
 
-    const nextVersionNumber = (latestVersion?.versionNumber ?? 0) + 1;
-    const versionId = randomUUID();
     const now = new Date();
+    let versionId: string;
+    let versionNumber: number;
+    let publishedAtStr: string;
 
-    // 5. Buat snapshot tidak dapat diubah (immutable snapshot)
-    await tx.insert(lessonVersions).values({
-      id: versionId,
-      materialId,
-      sourceRevisionId: draft.sourceRevisionId,
-      draftId: draft.id,
-      draftRevision: draft.revision,
-      versionNumber: nextVersionNumber,
-      content: draft.content,
-      schemaVersion: "1.0",
-      approvedBy: user.id,
-      publishedAt: now,
-    });
+    if (existingVersion) {
+      // Draf pada revisi ini sudah pernah di-snapshot. Aktifkan kembali sebagai currentVersionId jika belum aktif.
+      versionId = existingVersion.id;
+      versionNumber = existingVersion.versionNumber;
+      publishedAtStr = existingVersion.publishedAt.toISOString();
 
-    // 6. Tautkan versi aktif ke materials
-    await tx
-      .update(materials)
-      .set({
-        currentVersionId: versionId,
-        updatedAt: now,
-      })
-      .where(eq(materials.id, materialId));
+      if (mat.currentVersionId !== existingVersion.id) {
+        await tx
+          .update(materials)
+          .set({
+            currentVersionId: versionId,
+            updatedAt: now,
+          })
+          .where(eq(materials.id, materialId));
 
-    // 7. Audit log penerbitan
-    await tx.insert(auditEvents).values({
-      id: randomUUID(),
-      actorId: user.id,
-      materialId,
-      eventType: "material_published",
-      metadata: {
-        versionId,
-        versionNumber: nextVersionNumber,
+        await tx.insert(auditEvents).values({
+          id: randomUUID(),
+          actorId: user.id,
+          materialId,
+          eventType: "material_published",
+          metadata: {
+            versionId,
+            versionNumber,
+            draftRevision: draft.revision,
+            republished: true,
+          },
+          createdAt: now,
+        });
+      }
+    } else {
+      // 5. Cari nomor versi publikasi berikutnya
+      const [latestVersion] = await tx
+        .select({ versionNumber: lessonVersions.versionNumber })
+        .from(lessonVersions)
+        .where(eq(lessonVersions.materialId, materialId))
+        .orderBy(desc(lessonVersions.versionNumber))
+        .limit(1);
+
+      versionNumber = (latestVersion?.versionNumber ?? 0) + 1;
+      versionId = randomUUID();
+      publishedAtStr = now.toISOString();
+
+      // Buat snapshot tidak dapat diubah (immutable snapshot)
+      await tx.insert(lessonVersions).values({
+        id: versionId,
+        materialId,
+        sourceRevisionId: draft.sourceRevisionId,
+        draftId: draft.id,
         draftRevision: draft.revision,
-      },
-      createdAt: now,
-    });
+        versionNumber,
+        content: draft.content,
+        schemaVersion: "1.0",
+        approvedBy: user.id,
+        publishedAt: now,
+      });
+
+      // Tautkan versi aktif ke materials
+      await tx
+        .update(materials)
+        .set({
+          currentVersionId: versionId,
+          updatedAt: now,
+        })
+        .where(eq(materials.id, materialId));
+
+      // Audit log penerbitan
+      await tx.insert(auditEvents).values({
+        id: randomUUID(),
+        actorId: user.id,
+        materialId,
+        eventType: "material_published",
+        metadata: {
+          versionId,
+          versionNumber,
+          draftRevision: draft.revision,
+        },
+        createdAt: now,
+      });
+    }
 
     return {
       versionId,
-      versionNumber: nextVersionNumber,
-      publishedAt: now.toISOString(),
+      versionNumber,
+      publishedAt: publishedAtStr,
     };
   });
 }
