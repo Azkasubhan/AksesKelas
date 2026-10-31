@@ -31,14 +31,11 @@ export function StudentMaterialsList({ materials }: StudentMaterialsListProps) {
 
   if (materials.length === 0) {
     return (
-      <div className="rounded-[18px] border border-line bg-surface p-10 text-center shadow-xs">
-        <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary-subtle text-primary border border-primary/20">
-          <BookOpen className="size-6" aria-hidden="true" />
-        </div>
-        <h3 className="mt-4 font-heading text-base font-bold text-ink">
+      <div className="rounded-2xl border border-line bg-surface p-12 text-center shadow-xs">
+        <h3 className="font-heading text-lg font-bold text-ink">
           Belum Ada Materi Tersedia
         </h3>
-        <p className="mx-auto mt-1.5 max-w-md text-sm text-muted leading-relaxed">
+        <p className="mx-auto mt-2 max-w-md text-sm text-muted leading-relaxed">
           Guru pengajar belum menerbitkan materi bacaan di kelas yang kamu ikuti. Materi baru akan otomatis muncul di sini setelah diterbitkan.
         </p>
       </div>
@@ -95,7 +92,7 @@ export function StudentMaterialsList({ materials }: StudentMaterialsListProps) {
             onClick={() => setFilter("selesai")}
             className={`rounded-btn px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               filter === "selesai"
-                ? "bg-emerald-600 text-white shadow-xs"
+                ? "bg-primary text-white shadow-xs"
                 : "border border-line bg-surface text-ink/75 hover:text-ink hover:bg-surface-subtle"
             }`}
           >
@@ -106,7 +103,7 @@ export function StudentMaterialsList({ materials }: StudentMaterialsListProps) {
 
       {/* Grid Kartu Materi */}
       {filteredMaterials.length === 0 ? (
-        <div className="rounded-[16px] border border-line bg-surface p-8 text-center text-sm text-muted">
+        <div className="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted shadow-xs">
           Tidak ada materi dalam kategori status ini.
         </div>
       ) : (
@@ -118,7 +115,7 @@ export function StudentMaterialsList({ materials }: StudentMaterialsListProps) {
             return (
               <div
                 key={item.id}
-                className="group relative flex flex-col justify-between rounded-[18px] border border-line bg-surface p-5 sm:p-6 shadow-xs transition-all duration-200 hover:border-primary/40 hover:shadow-sm"
+                className="group relative flex flex-col justify-between rounded-2xl border border-line bg-surface p-5 sm:p-6 shadow-xs transition-all duration-200 hover:border-primary/40 hover:shadow-md"
               >
                 <div className="space-y-3">
                   {/* Header: Mapel & Status Bacaan */}
@@ -129,22 +126,23 @@ export function StudentMaterialsList({ materials }: StudentMaterialsListProps) {
 
                     {/* Status Pill */}
                     {isCompleted && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                        <CheckCircle2 className="size-3" aria-hidden="true" />
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-medium text-ink">
+                        <CheckCircle2 className="size-3 text-primary" aria-hidden="true" />
                         <span>Selesai</span>
                       </span>
                     )}
 
                     {isInProgress && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary-subtle px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-                        <Clock className="size-3" aria-hidden="true" />
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-medium text-ink">
+                        <Clock className="size-3 text-primary" aria-hidden="true" />
                         <span>Sedang Dibaca</span>
                       </span>
                     )}
 
                     {!isCompleted && !isInProgress && (
-                      <span className="inline-flex items-center rounded-full border border-line bg-surface-subtle px-2.5 py-0.5 text-[11px] font-medium text-muted">
-                        Belum Dibaca
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-line bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+                        <span className="size-1.5 rounded-full bg-muted/60" aria-hidden="true" />
+                        <span>Belum Dibaca</span>
                       </span>
                     )}
                   </div>

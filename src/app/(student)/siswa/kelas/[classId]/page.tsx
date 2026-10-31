@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, BookOpen, ArrowRight, GraduationCap } from "lucide-react";
+import { ChevronRight, ArrowRight } from "lucide-react";
 import { requireRole } from "@/server/auth/guards";
 import { getClassForUser } from "@/server/services/classes.service";
 import { listMaterialsForClass } from "@/server/services/materials.service";
@@ -27,9 +27,9 @@ export default async function StudentClassDetailPage({ params }: PageProps) {
 
   return (
     <DashboardLayout user={session.user} csrfToken={session.csrfToken}>
-      <main id="konten-utama" className="mx-auto w-full max-w-5xl px-6 py-8 sm:px-10 sm:py-12">
+      <main id="konten-utama" className="mx-auto w-full max-w-5xl px-6 py-6 sm:px-10 sm:py-8 space-y-6">
         {/* Breadcrumb Navigasi */}
-        <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-muted">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-muted">
           <Link href="/siswa" className="hover:text-ink hover:underline">
             Ruang Belajar
           </Link>
@@ -40,39 +40,31 @@ export default async function StudentClassDetailPage({ params }: PageProps) {
         </nav>
 
         {/* Header Kelas */}
-        <div className="border-b border-line pb-8">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Kelas Pembelajaran
-            </span>
-          </div>
-          <h1 className="mt-1 font-heading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+        <div className="border-b border-line pb-5">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
             {cls.name}
           </h1>
-          <p className="mt-2 text-sm text-muted">
+          <p className="mt-1.5 text-sm text-muted">
             Pengajar: <span className="font-semibold text-ink">{"teacherName" in cls ? cls.teacherName : "Guru"}</span>
           </p>
           {cls.description ? (
-            <p className="mt-3 max-w-2xl text-base text-muted leading-relaxed">
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
               {cls.description}
             </p>
           ) : null}
         </div>
 
         {/* Daftar Materi Terbit */}
-        <div className="mt-10">
-          <div className="flex items-center justify-between pb-4 border-b border-line-subtle">
-            <h2 className="font-heading text-xl font-bold tracking-tight text-ink">
+        <div className="pt-2">
+          <div className="flex items-center justify-between pb-4 border-b border-line">
+            <h2 className="font-heading text-lg sm:text-xl font-bold tracking-tight text-ink">
               Materi Pelajaran ({materialsList.length})
             </h2>
           </div>
 
           {materialsList.length === 0 ? (
-            <div className="card-lift rounded-[20px] p-12 text-center">
-              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-xs">
-                <GraduationCap className="size-7" aria-hidden="true" />
-              </div>
-              <h3 className="mt-5 font-heading text-lg font-bold text-ink">
+            <div className="mt-4 rounded-2xl border border-line bg-surface p-12 text-center shadow-xs">
+              <h3 className="font-heading text-lg font-bold text-ink">
                 Belum Ada Materi Terbit
               </h3>
               <p className="mx-auto mt-2 max-w-md text-sm text-muted leading-relaxed">
@@ -80,44 +72,47 @@ export default async function StudentClassDetailPage({ params }: PageProps) {
               </p>
             </div>
           ) : (
-            <div className="mt-6 flex flex-col gap-4">
+            <div className="mt-4 flex flex-col gap-3">
               {materialsList.map((mat) => (
                 <div
                   key={mat.id}
-                  className="card-lift group relative overflow-hidden flex flex-col justify-between gap-4 rounded-[18px] p-5 sm:flex-row sm:items-center sm:p-6"
+                  className="group relative flex flex-col justify-between gap-4 rounded-2xl border border-line bg-surface p-5 shadow-xs transition-all duration-200 hover:border-primary/40 hover:shadow-md sm:flex-row sm:items-center"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-subtle to-primary-subtle/40 text-primary border border-primary-border/60 shadow-2xs mt-0.5">
-                      <BookOpen className="size-5" aria-hidden="true" />
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-medium text-muted">
+                        {mat.subject}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-medium text-ink">
+                        <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
+                        <span>Tersedia</span>
+                      </span>
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-semibold text-muted">
-                          {mat.subject}
-                        </span>
-                        <span className="rounded-md bg-emerald-subtle border border-emerald-border/60 px-2 py-0.5 text-xs font-semibold text-emerald">
-                          Tersedia
-                        </span>
-                      </div>
-                      <h3 className="font-heading text-lg font-bold text-ink transition-colors group-hover:text-primary">
+                    <h3 className="font-heading text-lg font-bold text-ink transition-colors group-hover:text-primary">
+                      <Link href={`/siswa/kelas/${classId}/materi/${mat.id}`} className="focus-visible:outline-focus">
                         {mat.title}
-                      </h3>
-                      {mat.description ? (
-                        <p className="text-sm text-muted line-clamp-2 leading-relaxed">
-                          {mat.description}
-                        </p>
-                      ) : null}
-                      <p className="text-xs text-muted pt-0.5">
-                        Diterbitkan {formatDate(mat.createdAt)}
+                      </Link>
+                    </h3>
+                    {mat.description ? (
+                      <p className="line-clamp-1 text-sm text-muted">
+                        {mat.description}
                       </p>
-                    </div>
+                    ) : null}
+                    <p className="text-xs text-muted">
+                      Diterbitkan {formatDate(mat.createdAt)}
+                    </p>
                   </div>
 
-                  <div className="shrink-0 flex items-center gap-2 self-start sm:self-center">
-                    <Button variant="primary" size="md" asChild className="h-10 px-5 font-semibold cursor-pointer">
+                  <div className="flex shrink-0 items-center gap-2 self-start sm:self-center">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      asChild
+                      className="h-8.5 px-4 text-xs font-semibold cursor-pointer shadow-xs"
+                    >
                       <Link href={`/siswa/kelas/${classId}/materi/${mat.id}`}>
                         <span>Mulai Membaca</span>
-                        <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                       </Link>
                     </Button>
                   </div>

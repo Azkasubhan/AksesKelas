@@ -1,9 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
-  GraduationCap,
+  BookOpen,
   Plus,
   Sliders,
+  User,
 } from "lucide-react";
 import { requireRole } from "@/server/auth/guards";
 import { listClassesForStudent } from "@/server/services/classes.service";
@@ -33,44 +35,36 @@ export default async function StudentHomePage() {
 
   return (
     <DashboardLayout user={session.user} csrfToken={session.csrfToken}>
-      <main id="konten-utama" className="mx-auto w-full max-w-5xl px-6 py-8 sm:px-10 sm:py-10 space-y-10">
+      <main id="konten-utama" className="mx-auto w-full max-w-5xl px-6 py-8 sm:px-10 sm:py-10 space-y-8">
         {/* ========================================================= */}
         {/* SAMBUTAN PERSONAL & RINGKASAN PREFERENSI MEMBACA          */}
         {/* ========================================================= */}
-        <div className="space-y-4 border-b border-line pb-8">
+        <div className="space-y-4 border-b border-line pb-6">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Ruang Bacaku
-            </span>
-            <h1 className="mt-1 font-heading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+            <h1 className="font-heading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
               Halo, {session.user.displayName}!
             </h1>
-            <p className="mt-1.5 text-base text-muted">
+            <p className="mt-1.5 text-sm sm:text-base text-muted">
               Mari lanjutkan membaca dengan cara yang paling nyaman untukmu.
             </p>
           </div>
 
           {/* Kartu Ringkasan Preferensi Membaca Aktif Siswa */}
-          <div className="flex flex-col gap-3 rounded-[16px] border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5 shadow-xs">
-            <div className="flex items-center gap-3.5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-subtle text-primary border border-primary/20">
-                <Sliders className="size-5" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted">
-                  Cara Membaca Saya
-                </p>
-                <p className="font-heading text-sm sm:text-base font-bold text-ink">
-                  {preferenceSummaryText}
-                </p>
-              </div>
+          <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4 shadow-xs">
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                Cara Membaca Aktif
+              </span>
+              <p className="font-heading text-sm sm:text-base font-bold text-ink">
+                {preferenceSummaryText}
+              </p>
             </div>
 
             <Button
               variant="secondary"
               size="sm"
               asChild
-              className="h-9 px-4 text-xs font-semibold cursor-pointer shrink-0"
+              className="h-8.5 px-3.5 text-xs font-semibold cursor-pointer shrink-0"
             >
               <Link href="/siswa/cara-membaca">
                 <Sliders className="size-3.5" aria-hidden="true" />
@@ -103,11 +97,8 @@ export default async function StudentHomePage() {
           </div>
 
           {studentClasses.length === 0 ? (
-            <div className="rounded-[18px] border border-line bg-surface p-8 text-center shadow-xs">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary-subtle text-primary border border-primary/20">
-                <GraduationCap className="size-6" aria-hidden="true" />
-              </div>
-              <h3 className="mt-3.5 font-heading text-base font-bold text-ink">
+            <div className="rounded-2xl border border-line bg-surface p-10 text-center shadow-xs">
+              <h3 className="font-heading text-lg font-bold text-ink">
                 Belum Terdaftar di Kelas Mana Pun
               </h3>
               <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
@@ -123,50 +114,81 @@ export default async function StudentHomePage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               {studentClasses.map((cls) => (
                 <div
                   key={cls.id}
-                  className="group relative flex flex-col justify-between rounded-[16px] border border-line bg-surface p-5 shadow-xs transition-colors hover:border-line-subtle"
+                  className="group relative flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-xs transition-shadow duration-200 hover:shadow-md"
                 >
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-subtle text-primary border border-line">
-                        <GraduationCap className="size-4.5" aria-hidden="true" />
-                      </div>
-                      <span className="text-[11px] font-medium text-muted">
-                        Pengajar: <strong className="font-semibold text-ink">{cls.teacherName}</strong>
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="font-heading text-base font-bold text-ink transition-colors group-hover:text-primary">
-                        <Link href={`/siswa/kelas/${cls.id}`} className="focus-visible:outline-focus">
+                  {/* Header gambar gelombang (Gaya Google Classroom selaras dengan guru) */}
+                  <div className="relative shrink-0" style={{ height: 136 }}>
+                    <Image
+                      src="/class-header-wave.jpg"
+                      alt=""
+                      fill
+                      sizes="(min-width: 640px) 440px, 100vw"
+                      className="object-fill"
+                      aria-hidden="true"
+                    />
+                    <div className="relative z-10 px-5 pt-4">
+                      <h3
+                        className="truncate font-heading text-xl font-bold leading-tight"
+                        style={{ color: "#ffffff", maxWidth: "62%" }}
+                      >
+                        <Link
+                          href={`/siswa/kelas/${cls.id}`}
+                          className="hover:underline focus-visible:outline-focus"
+                          style={{ color: "#ffffff" }}
+                        >
                           {cls.name}
                         </Link>
                       </h3>
-                      {cls.description && (
-                        <p className="mt-0.5 text-xs text-muted line-clamp-1">
+                      {cls.description ? (
+                        <p
+                          className="mt-0.5 truncate text-sm"
+                          style={{ color: "#dbe7ff", maxWidth: "46%" }}
+                        >
                           {cls.description}
                         </p>
-                      )}
+                      ) : null}
+                      <p
+                        className="mt-3 truncate text-xs font-medium"
+                        style={{ color: "#c3d4fb", maxWidth: "34%" }}
+                      >
+                        {cls.teacherName}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-line/60 pt-3">
-                    <span className="text-xs text-muted">
-                      {cls.publishedCount} Materi Tersedia
-                    </span>
+                  {/* Avatar guru: ikon akun, menimpa tepi bawah header */}
+                  <div
+                    className="absolute z-20 flex items-center justify-center rounded-full bg-surface-subtle text-muted ring-4 ring-surface"
+                    style={{ right: 16, top: 100, width: 68, height: 68 }}
+                  >
+                    <User className="size-8" aria-hidden="true" />
+                  </div>
 
+                  {/* Badan kartu */}
+                  <div className="flex min-h-[72px] flex-col justify-end gap-3 px-5 pb-4 pt-5">
+                    <div className="flex items-center gap-3 text-xs text-muted">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <BookOpen className="size-3.5 text-muted" aria-hidden="true" />
+                        <span>{cls.publishedCount} Materi Tersedia</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Footer aksi */}
+                  <div className="flex items-center justify-end border-t border-line/70 px-4 py-2.5">
                     <Button
                       variant="secondary"
                       size="sm"
                       asChild
-                      className="h-8 px-3 text-xs font-semibold cursor-pointer"
+                      className="h-8.5 px-3.5 text-xs font-semibold cursor-pointer group-hover:border-primary-border group-hover:text-primary"
                     >
                       <Link href={`/siswa/kelas/${cls.id}`}>
                         <span>Buka Kelas</span>
-                        <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                       </Link>
                     </Button>
                   </div>
