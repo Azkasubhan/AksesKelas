@@ -6,19 +6,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Layers,
-  Sparkles,
-  Sliders,
+  SlidersHorizontal,
   BookOpen,
+  AlignLeft,
   HelpCircle,
   CheckCircle,
   Volume2,
-  VolumeX,
   Play,
   Pause,
   Square,
-  RotateCcw,
-  Gauge,
   Check,
+  ChevronDown,
+  X,
+  Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api-client";
@@ -78,6 +78,28 @@ export function StudentReaderClient({
     initialPreferences?.listenEnabled ?? false,
   );
   const [settingsOpen, setSettingsOpen] = React.useState<boolean>(false);
+  const settingsRef = React.useRef<HTMLDivElement>(null);
+
+  // Tutup dropdown otomatis saat klik di luar atau tekan tombol Escape
+  React.useEffect(() => {
+    if (!settingsOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setSettingsOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSettingsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [settingsOpen]);
 
   // 2. State Flatten Kartu untuk Navigasi Mode Fokus
   const allCards = React.useMemo(() => {
@@ -110,9 +132,6 @@ export function StudentReaderClient({
     initialPreferences?.speechRate ?? 1,
   );
   const [voices, setVoices] = React.useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoiceUri, setSelectedVoiceUri] = React.useState<string | null>(
-    initialPreferences?.voiceUri ?? null,
-  );
 
   // Deteksi dan ambil daftar suara Web Speech API
   React.useEffect(() => {
@@ -266,16 +285,11 @@ export function StudentReaderClient({
     utterance.rate = speechRate;
     utterance.lang = detectedLang;
 
-    // Prioritaskan suara sesuai bahasa yang terdeteksi otomatis
-    if (selectedVoiceUri) {
-      const v = voices.find((vox) => vox.voiceURI === selectedVoiceUri);
-      if (v) utterance.voice = v;
-    } else {
-      const bestVoice = getBestVoiceForLanguage(voices, detectedLang);
-      if (bestVoice) {
-        utterance.voice = bestVoice;
-        utterance.lang = bestVoice.lang;
-      }
+    // Otomatis memilih suara terbaik sesuai bahasa teks yang terdeteksi
+    const bestVoice = getBestVoiceForLanguage(voices, detectedLang);
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+      utterance.lang = bestVoice.lang;
     }
 
     utterance.onstart = () => {
@@ -300,7 +314,6 @@ export function StudentReaderClient({
     easyRead,
     lesson,
     speechRate,
-    selectedVoiceUri,
     voices,
   ]);
 
@@ -428,358 +441,376 @@ export function StudentReaderClient({
 
   return (
     <div className={`min-h-dvh flex flex-col bg-canvas text-ink transition-colors duration-200 ${fontClass}`}>
-      {/* Sticky Reader Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-line bg-surface/90 backdrop-blur-md px-4 py-2.5 sm:px-6">
+      {/* Sticky Reader Header (Solid bg-surface completely prevents scroll bleed-through) */}
+      <header className="sticky top-0 z-50 w-full border-b border-line bg-surface px-4 py-2.5 sm:px-6 shadow-2xs">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <Link
               href={`/siswa/kelas/${classId}`}
-              className="inline-flex size-9 items-center justify-center rounded-btn border border-line bg-surface text-muted transition-colors hover:bg-surface-subtle hover:text-ink"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-btn border border-line bg-surface text-muted transition-colors hover:bg-surface-subtle hover:text-ink"
               aria-label="Kembali ke daftar materi kelas"
             >
               <ChevronLeft className="size-4" aria-hidden="true" />
             </Link>
 
-            <div className="hidden sm:block">
-              <span className="text-[11px] font-semibold text-muted uppercase tracking-wider">
+            <div className="min-w-0">
+              <span className="text-[11px] font-semibold text-muted uppercase tracking-wider block">
                 {lesson.subject}
               </span>
-              <h1 className="font-heading text-sm font-bold text-ink truncate max-w-xs md:max-w-md">
+              <h1 className="font-heading text-sm font-bold text-ink truncate max-w-[200px] xs:max-w-xs sm:max-w-sm md:max-w-md">
                 {lesson.title}
               </h1>
             </div>
           </div>
 
-          {/* Toolbar Akses & Mode Belajar */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* 1. Pemilihan Struktur: Standard vs Fokus */}
-            <div className="flex items-center rounded-btn bg-surface-subtle p-0.5 border border-line">
-              <button
-                type="button"
-                onClick={() => handleSetStructure("focus")}
-                className={`flex items-center gap-1.5 rounded-btn px-2.5 py-1 text-xs font-semibold transition-all ${
-                  structure === "focus"
-                    ? "bg-surface text-primary shadow-xs"
-                    : "text-muted hover:text-ink"
-                }`}
-                aria-pressed={structure === "focus"}
-              >
-                <Sparkles className="size-3.5" aria-hidden="true" />
-                <span className="hidden xs:inline">Fokus</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSetStructure("standard")}
-                className={`flex items-center gap-1.5 rounded-btn px-2.5 py-1 text-xs font-semibold transition-all ${
-                  structure === "standard"
-                    ? "bg-surface text-primary shadow-xs"
-                    : "text-muted hover:text-ink"
-                }`}
-                aria-pressed={structure === "standard"}
-              >
-                <BookOpen className="size-3.5" aria-hidden="true" />
-                <span className="hidden xs:inline">Standard</span>
-              </button>
-            </div>
-
-            {/* 2. Sakelar Lapisan: Easy Read */}
+          {/* Menu Dropdown Tunggal Pengaturan & Mode Membaca */}
+          <div className="relative" ref={settingsRef}>
             <button
               type="button"
-              onClick={handleToggleEasyRead}
-              className={`flex items-center gap-1.5 rounded-btn px-2.5 py-1.5 text-xs font-semibold border transition-all ${
-                easyRead
-                  ? "bg-primary text-on-primary border-primary shadow-xs"
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              className={`flex items-center gap-2 rounded-btn border px-3 py-1.5 text-xs font-semibold transition-all ${
+                settingsOpen
+                  ? "bg-primary text-white border-primary shadow-xs"
                   : "bg-surface text-ink border-line hover:bg-surface-subtle"
               }`}
-              aria-pressed={easyRead}
-              title="Bahasa lebih ringkas dan sederhana"
+              aria-expanded={settingsOpen}
+              aria-haspopup="dialog"
+              aria-label="Buka pengaturan dan opsi baca"
             >
-              <Layers className="size-3.5" aria-hidden="true" />
-              <span className="hidden sm:inline">Easy Read</span>
+              <SlidersHorizontal className="size-3.5" aria-hidden="true" />
+              <span>Pengaturan Baca</span>
+              {isPlaying && (
+                <span className="size-2 rounded-full bg-emerald animate-pulse" title="Audio sedang memutar" />
+              )}
+              <ChevronDown
+                className={`size-3.5 transition-transform duration-200 ${
+                  settingsOpen ? "rotate-180 text-white" : "text-muted"
+                }`}
+                aria-hidden="true"
+              />
             </button>
 
-            {/* 3. Sakelar Lapisan: Dengarkan (Listen / Web Speech) */}
-            {speechSupported && (
-              <button
-                type="button"
-                onClick={handleToggleListen}
-                className={`flex items-center gap-1.5 rounded-btn px-2.5 py-1.5 text-xs font-semibold border transition-all ${
-                  listenEnabled
-                    ? "bg-[#6366F1] text-white border-[#6366F1] shadow-xs"
-                    : "bg-surface text-ink border-line hover:bg-surface-subtle"
-                }`}
-                aria-pressed={listenEnabled}
-                title="Buka panel dengarkan suara materi"
+            {settingsOpen && (
+              <div
+                role="dialog"
+                aria-label="Pengaturan dan Mode Membaca"
+                className="absolute right-0 top-full mt-2 z-50 w-84 sm:w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-line bg-surface p-4 sm:p-5 shadow-2xl text-ink max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain space-y-3.5 pr-3 sm:pr-4"
               >
-                <Volume2 className="size-3.5" aria-hidden="true" />
-                <span className="hidden sm:inline">Dengarkan</span>
-              </button>
-            )}
-
-            {/* 4. Popover Pengaturan Kenyamanan Membaca */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setSettingsOpen(!settingsOpen)}
-                className={`flex size-9 items-center justify-center rounded-btn border transition-colors ${
-                  settingsOpen
-                    ? "bg-primary-subtle text-primary border-primary"
-                    : "bg-surface text-ink border-line hover:bg-surface-subtle"
-                }`}
-                aria-label="Pengaturan kenyamanan membaca"
-              >
-                <Sliders className="size-4" aria-hidden="true" />
-              </button>
-
-              {settingsOpen && (
-                <div className="absolute right-0 top-11 z-50 w-80 rounded-surface border border-line bg-surface p-4 shadow-xl text-ink">
-                  <div className="flex items-center justify-between border-b border-line pb-2 mb-3">
-                    <h3 className="font-heading text-xs font-bold uppercase tracking-wider text-muted">
-                      Kenyamanan Membaca
+                {/* Header Dropdown */}
+                <div className="flex items-center justify-between border-b border-line pb-2.5">
+                  <div>
+                    <h3 className="font-heading text-sm font-bold text-ink leading-tight">
+                      Pengaturan Membaca
                     </h3>
-                    <span className="text-[10px] text-emerald font-semibold flex items-center gap-1">
+                    <p className="text-[11px] text-muted">Sesuaikan kenyamanan & format bacaan</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-emerald font-semibold flex items-center gap-1 bg-emerald/10 px-2 py-0.5 rounded-full">
                       <Check className="size-3" /> Tersimpan Otomatis
                     </span>
-                  </div>
-
-                  {/* Ukuran Huruf */}
-                  <div className="space-y-1.5 mb-3">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <span>Ukuran Huruf</span>
-                      <span className="font-mono">{fontSize} px</span>
-                    </div>
-                    <div className="grid grid-cols-5 gap-1">
-                      {[18, 20, 22, 24, 28].map((size) => (
-                        <button
-                          key={size}
-                          type="button"
-                          onClick={() => handleSetFontSize(size)}
-                          className={`rounded py-1 text-xs font-semibold border ${
-                            fontSize === size
-                              ? "bg-primary text-on-primary border-primary"
-                              : "border-line bg-surface-subtle hover:bg-surface"
-                          }`}
-                        >
-                          {size}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Kerapatan Baris */}
-                  <div className="space-y-1.5 mb-3">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <span>Kerapatan Baris</span>
-                      <span className="font-mono">{lineHeight}</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1">
-                      {[1.5, 1.7, 2.0].map((lh) => (
-                        <button
-                          key={lh}
-                          type="button"
-                          onClick={() => handleSetLineHeight(lh)}
-                          className={`rounded py-1 text-xs font-semibold border ${
-                            lineHeight === lh
-                              ? "bg-primary text-on-primary border-primary"
-                              : "border-line bg-surface-subtle hover:bg-surface"
-                          }`}
-                        >
-                          {lh === 1.5 ? "Rapat" : lh === 1.7 ? "Normal" : "Lebar"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Jenis Huruf */}
-                  <div className="space-y-1.5 mb-3">
-                    <span className="text-xs font-semibold block">Jenis Huruf</span>
-                    <div className="grid grid-cols-3 gap-1">
-                      {[
-                        { id: "inter", label: "Inter (Standar)" },
-                        { id: "atkinson", label: "Hyperlegible" },
-                        { id: "system", label: "Sistem Mono" },
-                      ].map((f) => (
-                        <button
-                          key={f.id}
-                          type="button"
-                          onClick={() => handleSetFontFamily(f.id as ReaderFontFamily)}
-                          className={`rounded py-1 px-1.5 text-[11px] font-semibold border text-center ${
-                            fontFamily === f.id
-                              ? "bg-primary text-on-primary border-primary"
-                              : "border-line bg-surface-subtle hover:bg-surface"
-                          }`}
-                        >
-                          {f.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Lebar Kolom Baca */}
-                  <div className="space-y-1.5 mb-3">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <span>Lebar Kolom Paragraf</span>
-                      <span className="font-mono">{lineWidth} ch</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1">
-                      {[45, 60, 75].map((lw) => (
-                        <button
-                          key={lw}
-                          type="button"
-                          onClick={() => handleSetLineWidth(lw)}
-                          className={`rounded py-1 text-xs font-semibold border ${
-                            lineWidth === lw
-                              ? "bg-primary text-on-primary border-primary"
-                              : "border-line bg-surface-subtle hover:bg-surface"
-                          }`}
-                        >
-                          {lw === 45 ? "Sempit" : lw === 60 ? "Sedang" : "Lebar"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Tema Latar Belakang */}
-                  <div className="space-y-1.5">
-                    <span className="text-xs font-semibold block">Warna Latar Baca</span>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleSetTheme("light")}
-                        className={`rounded p-2 text-xs font-semibold border text-center ${
-                          theme === "light"
-                            ? "border-primary ring-2 ring-primary/20"
-                            : "border-line"
-                        } bg-canvas text-ink`}
-                      >
-                        Terang
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSetTheme("sepia")}
-                        className={`rounded p-2 text-xs font-semibold border text-center ${
-                          theme === "sepia"
-                            ? "border-primary ring-2 ring-primary/20"
-                            : "border-line"
-                        } bg-[#FBF3E5] text-[#30281F]`}
-                      >
-                        Sepia
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSetTheme("high-contrast")}
-                        className={`rounded p-2 text-xs font-semibold border text-center ${
-                          theme === "high-contrast"
-                            ? "border-primary ring-2 ring-primary/20"
-                            : "border-line"
-                        } bg-black text-white`}
-                      >
-                        Kontras
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSettingsOpen(false)}
+                      className="rounded-lg p-1 text-muted hover:text-ink hover:bg-surface-subtle transition-colors"
+                      aria-label="Tutup pengaturan"
+                    >
+                      <X className="size-4" />
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
+
+                {/* 1. Format Bacaan */}
+                <div className="space-y-1.5">
+                  <span className="text-xs font-bold text-ink block">Format Bacaan</span>
+                  <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-surface-subtle border border-line">
+                    <button
+                      type="button"
+                      onClick={() => handleSetStructure("standard")}
+                      className={`flex items-center justify-center gap-2 rounded-lg py-1.5 px-2 text-xs font-semibold transition-all ${
+                        structure === "standard"
+                          ? "bg-surface text-primary shadow-xs border border-line"
+                          : "text-muted hover:text-ink"
+                      }`}
+                    >
+                      <AlignLeft className="size-3.5" />
+                      <span>Teks Standar</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetStructure("focus")}
+                      className={`flex items-center justify-center gap-2 rounded-lg py-1.5 px-2 text-xs font-semibold transition-all ${
+                        structure === "focus"
+                          ? "bg-surface text-primary shadow-xs border border-line"
+                          : "text-muted hover:text-ink"
+                      }`}
+                    >
+                      <BookOpen className="size-3.5" />
+                      <span>Kartu Fokus</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Easy Read Switch */}
+                <div className="flex items-center justify-between p-3 rounded-xl border border-line bg-surface-subtle/40">
+                  <div className="pr-2">
+                    <div className="flex items-center gap-1.5">
+                      <Layers className="size-3.5 text-primary" />
+                      <span className="text-xs font-bold text-ink">
+                        Easy Read (Bahasa Ringkas)
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted leading-tight mt-0.5">
+                      Sederhanakan kalimat agar lebih cepat & mudah dipahami
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={easyRead}
+                    onClick={handleToggleEasyRead}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      easyRead ? "bg-primary" : "bg-line"
+                    }`}
+                    aria-label="Aktifkan mode Easy Read"
+                  >
+                    <span
+                      className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                        easyRead ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* 3. Audio Narasi (Text-to-Speech) - Otomatis deteksi bahasa teks */}
+                {speechSupported && (
+                  <div className="space-y-2 rounded-xl border border-line p-3 bg-surface-subtle/40">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Volume2 className="size-3.5 text-primary" />
+                        <span className="text-xs font-bold text-ink">Audio Pembaca</span>
+                      </div>
+                      {isPlaying ? (
+                        <span className="text-[10px] font-semibold text-primary animate-pulse flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-primary" /> Membaca...
+                        </span>
+                      ) : isPaused ? (
+                        <span className="text-[10px] font-semibold text-amber-600">
+                          Dijeda
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSpeakCurrent}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary hover:bg-primary-hover text-white py-1.5 px-3 text-xs font-semibold transition-colors shadow-xs"
+                      >
+                        {isPlaying ? (
+                          <>
+                            <Pause className="size-3.5" />
+                            <span>Jeda Audio</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="size-3.5 fill-current" />
+                            <span>{isPaused ? "Lanjutkan" : "Putar Suara"}</span>
+                          </>
+                        )}
+                      </button>
+
+                      {(isPlaying || isPaused) && (
+                        <button
+                          type="button"
+                          onClick={stopSpeech}
+                          className="flex items-center justify-center gap-1.5 rounded-lg border border-line bg-surface hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 py-1.5 px-3 text-xs font-semibold text-muted transition-colors"
+                          title="Hentikan pembacaan"
+                        >
+                          <Square className="size-3.5" />
+                          <span>Berhenti</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Kecepatan Suara */}
+                    <div className="space-y-1 pt-0.5">
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-muted">
+                        <span>Kecepatan Narasi</span>
+                        <span className="font-mono text-ink font-bold">{speechRate}×</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1">
+                        {[0.75, 1, 1.25, 1.5].map((rate) => (
+                          <button
+                            key={rate}
+                            type="button"
+                            onClick={() => handleSetSpeechRate(rate)}
+                            className={`rounded-lg py-1 text-xs font-semibold border transition-all ${
+                              speechRate === rate
+                                ? "bg-primary text-white border-primary shadow-xs"
+                                : "border-line bg-surface text-ink hover:bg-surface-subtle"
+                            }`}
+                          >
+                            {rate}×
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. Tema Latar Kertas */}
+                <div className="space-y-1.5">
+                  <span className="text-xs font-bold text-ink block">Warna Latar Baca</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      {
+                        id: "light",
+                        label: "Terang",
+                        swatchClass: "bg-surface border-line text-ink",
+                      },
+                      {
+                        id: "sepia",
+                        label: "Sepia",
+                        swatchClass: "bg-[#FBF3E5] border-[#DFCFA9] text-[#30281F]",
+                      },
+                      {
+                        id: "high-contrast",
+                        label: "Kontras",
+                        swatchClass: "bg-[#18181b] border-white/20 text-white",
+                      },
+                    ].map((t) => {
+                      const isSelected = theme === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => handleSetTheme(t.id as ReaderTheme)}
+                          className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-primary bg-primary-subtle/30 ring-2 ring-primary/40 shadow-xs"
+                              : "border-line bg-surface hover:bg-surface-subtle"
+                          }`}
+                        >
+                          <div
+                            className={`size-7 rounded-md border flex items-center justify-center font-heading font-bold text-xs mb-1 shadow-2xs ${t.swatchClass}`}
+                          >
+                            Aa
+                          </div>
+                          <span className="text-[11px] font-bold text-ink">{t.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 5. Ukuran Huruf */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold text-ink">
+                    <span>Ukuran Huruf</span>
+                    <span className="font-mono text-primary font-bold">{fontSize} px</span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1">
+                    {[18, 20, 22, 24, 28].map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => handleSetFontSize(size)}
+                        className={`rounded-lg py-1.5 text-xs font-semibold border transition-all ${
+                          fontSize === size
+                            ? "bg-primary text-white border-primary shadow-xs"
+                            : "border-line bg-surface text-ink hover:bg-surface-subtle"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 6. Kerapatan Baris (Baris Mandiri Penuh) */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold text-ink">
+                    <span>Kerapatan Baris</span>
+                    <span className="font-mono text-primary font-bold">{lineHeight}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { lh: 1.5, label: "Rapat (1.5)" },
+                      { lh: 1.7, label: "Normal (1.7)" },
+                      { lh: 2.0, label: "Lebar (2.0)" },
+                    ].map(({ lh, label }) => (
+                      <button
+                        key={lh}
+                        type="button"
+                        onClick={() => handleSetLineHeight(lh)}
+                        className={`rounded-lg py-1.5 text-xs font-semibold border whitespace-nowrap transition-all ${
+                          lineHeight === lh
+                            ? "bg-primary text-white border-primary shadow-xs"
+                            : "border-line bg-surface text-ink hover:bg-surface-subtle"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 7. Lebar Kolom Paragraf (Baris Mandiri Penuh) */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold text-ink">
+                    <span>Lebar Kolom Paragraf</span>
+                    <span className="font-mono text-primary font-bold">{lineWidth} ch</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { lw: 45, label: "Sempit (45)" },
+                      { lw: 60, label: "Sedang (60)" },
+                      { lw: 75, label: "Lebar (75)" },
+                    ].map(({ lw, label }) => (
+                      <button
+                        key={lw}
+                        type="button"
+                        onClick={() => handleSetLineWidth(lw)}
+                        className={`rounded-lg py-1.5 text-xs font-semibold border whitespace-nowrap transition-all ${
+                          lineWidth === lw
+                            ? "bg-primary text-white border-primary shadow-xs"
+                            : "border-line bg-surface text-ink hover:bg-surface-subtle"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 8. Jenis Huruf */}
+                <div className="space-y-1.5">
+                  <span className="text-xs font-bold text-ink block">Jenis Huruf</span>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { id: "inter", label: "Inter (Standar)" },
+                      { id: "atkinson", label: "Hyperlegible" },
+                      { id: "system", label: "Sistem Mono" },
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => handleSetFontFamily(f.id as ReaderFontFamily)}
+                        className={`rounded-lg py-1.5 px-1 text-[11px] font-semibold border text-center transition-all ${
+                          fontFamily === f.id
+                            ? "bg-primary text-white border-primary shadow-xs"
+                            : "border-line bg-surface text-ink hover:bg-surface-subtle"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Audio Toolbar (Muncul saat Dengarkan diaktifkan) */}
-        {listenEnabled && speechSupported && (
-          <div className="mt-2.5 mx-auto max-w-6xl rounded-lg border border-[#6366F1]/30 bg-[#6366F1]/10 px-3.5 py-2 flex flex-wrap items-center justify-between gap-3 text-ink">
-            <div className="flex items-center gap-2">
-              <span className="flex size-7 items-center justify-center rounded-full bg-[#6366F1] text-white">
-                <Volume2 className="size-3.5" />
-              </span>
-              <div>
-                <p className="text-xs font-bold leading-tight">
-                  {structure === "focus" ? "Audio Kartu Aktif" : "Audio Paragraf Materi"}
-                </p>
-                <p className="text-[11px] text-muted">
-                  {isPlaying ? "Sedang membacakan konten..." : isPaused ? "Audio dijeda" : "Klik Putar untuk mendengarkan"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Tombol Putar / Jeda */}
-              <Button
-                size="sm"
-                variant="primary"
-                onClick={handleSpeakCurrent}
-                className="gap-1.5 h-8 bg-[#6366F1] hover:bg-[#4F46E5] text-white"
-              >
-                {isPlaying ? (
-                  <>
-                    <Pause className="size-3.5" />
-                    <span>Jeda</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="size-3.5" />
-                    <span>{isPaused ? "Lanjutkan" : "Putar"}</span>
-                  </>
-                )}
-              </Button>
-
-              {/* Tombol Berhenti */}
-              {(isPlaying || isPaused) && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={stopSpeech}
-                  className="gap-1.5 h-8 text-rose-600 hover:text-rose-700"
-                >
-                  <Square className="size-3.5" />
-                  <span>Hentikan</span>
-                </Button>
-              )}
-
-              {/* Pengatur Kecepatan Suara */}
-              <div className="flex items-center rounded-btn bg-surface border border-line p-0.5 text-xs">
-                <span className="px-1.5 text-muted flex items-center">
-                  <Gauge className="size-3" />
-                </span>
-                {[0.75, 1, 1.25, 1.5].map((rate) => (
-                  <button
-                    key={rate}
-                    type="button"
-                    onClick={() => handleSetSpeechRate(rate)}
-                    className={`px-1.5 py-0.5 rounded text-[11px] font-semibold transition-colors ${
-                      speechRate === rate
-                        ? "bg-[#6366F1] text-white font-bold"
-                        : "text-muted hover:text-ink"
-                    }`}
-                  >
-                    {rate}×
-                  </button>
-                ))}
-              </div>
-
-              {/* Pilihan Suara Bahasa Indonesia bila ada */}
-              {voices.length > 0 && (
-                <select
-                  value={selectedVoiceUri || ""}
-                  onChange={(e) => {
-                    setSelectedVoiceUri(e.target.value || null);
-                    syncPreference({ voiceUri: e.target.value || null });
-                    stopSpeech();
-                  }}
-                  className="rounded-btn border border-line bg-surface px-2 py-1 text-[11px] font-medium text-ink focus:outline-none max-w-[140px] truncate"
-                  title="Pilih Suara Pembaca"
-                >
-                  <option value="">Suara Otomatis (Sesuai Bahasa)</option>
-                  {voices.map((vox) => (
-                    <option key={vox.voiceURI} value={vox.voiceURI}>
-                      {vox.name} ({vox.lang})
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Konten Membaca Utama */}
@@ -788,7 +819,7 @@ export function StudentReaderClient({
         {showResumeBanner && (
           <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-subtle/50 p-4">
             <div className="flex items-center gap-3">
-              <Sparkles className="size-5 text-primary shrink-0" />
+              <Bookmark className="size-5 text-primary shrink-0" />
               <div>
                 <p className="text-sm font-bold text-ink">
                   Lanjutkan Belajar?
@@ -882,7 +913,7 @@ export function StudentReaderClient({
                         </span>
                       )}
                       {isPlaying && (
-                        <span className="inline-flex items-center gap-1 rounded bg-[#6366F1]/10 text-[#6366F1] px-2 py-0.5 text-xs font-semibold animate-pulse">
+                        <span className="inline-flex items-center gap-1 rounded bg-primary/10 text-primary px-2 py-0.5 text-xs font-semibold animate-pulse">
                           <Volume2 className="size-3" /> Membaca...
                         </span>
                       )}
@@ -1069,6 +1100,37 @@ export function StudentReaderClient({
           </div>
         )}
       </main>
+
+      {/* Floating Audio Controller saat audio sedang aktif */}
+      {speechSupported && (isPlaying || isPaused) && (
+        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 rounded-full border border-line bg-surface shadow-xl px-3.5 py-2 text-ink">
+          <div className="flex items-center gap-2">
+            <span className={`size-2.5 rounded-full ${isPlaying ? "bg-primary animate-ping" : "bg-muted"}`} />
+            <span className="text-xs font-semibold hidden sm:inline">
+              {isPlaying ? "Membacakan..." : "Audio Dijeda"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 border-l border-line pl-2">
+            <button
+              type="button"
+              onClick={handleSpeakCurrent}
+              className="flex size-7 items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover transition-colors"
+              title={isPlaying ? "Jeda" : "Lanjutkan"}
+            >
+              {isPlaying ? <Pause className="size-3.5" /> : <Play className="size-3.5 fill-current ml-0.5" />}
+            </button>
+            <button
+              type="button"
+              onClick={stopSpeech}
+              className="flex size-7 items-center justify-center rounded-full border border-line text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+              title="Hentikan Audio"
+            >
+              <Square className="size-3" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
