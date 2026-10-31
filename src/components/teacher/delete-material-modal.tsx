@@ -70,7 +70,7 @@ export function DeleteMaterialModal({
           <Button
             variant="secondary"
             size="sm"
-            className="h-9 px-3 gap-1.5 border-danger/30 text-danger hover:bg-danger/10 hover:border-danger hover:text-danger active:bg-danger/20 font-semibold cursor-pointer"
+            className="h-8.5 px-3 gap-1.5 border-danger/30 text-danger hover:bg-danger/10 hover:border-danger hover:text-danger active:bg-danger/20 text-xs font-semibold cursor-pointer"
             title="Hapus materi"
             aria-label={`Hapus materi ${materialTitle}`}
           >

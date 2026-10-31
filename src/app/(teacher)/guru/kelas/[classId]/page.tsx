@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, Plus, Users, BookOpen, Clock, FileText } from "lucide-react";
+import { ChevronRight, Plus, Users, BookOpen, Clock } from "lucide-react";
 import { requireRole } from "@/server/auth/guards";
 import { getClassForUser, listMembers } from "@/server/services/classes.service";
 import { listMaterialsForClass } from "@/server/services/materials.service";
@@ -34,9 +34,9 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
   return (
     <DashboardLayout user={session.user} csrfToken={session.csrfToken}>
-      <main id="konten-utama" className="mx-auto w-full max-w-5xl px-6 py-8 sm:px-10 sm:py-12">
+      <main id="konten-utama" className="mx-auto w-full max-w-5xl px-6 py-6 sm:px-10 sm:py-8 space-y-6">
         {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-muted">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-muted">
           <Link href="/guru" className="hover:text-ink hover:underline">
             Kelas Saya
           </Link>
@@ -46,55 +46,52 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
           </span>
         </nav>
 
-        {/* Header Kelas */}
-        <div className="flex flex-col justify-between gap-6 border-b border-line pb-8 sm:flex-row sm:items-start">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Manajemen Kelas
-            </span>
-            <h1 className="mt-1 font-heading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-              {cls.name}
-            </h1>
-            {cls.description ? (
-              <p className="mt-2 max-w-2xl text-base text-muted">
-                {cls.description}
-              </p>
-            ) : null}
-            <div className="mt-4 flex items-center gap-4 text-xs text-muted">
-              <span>Dibuat: {formatDate(cls.createdAt)}</span>
-              <span>•</span>
-              <span>{members.length} Murid Terdaftar</span>
+        {/* Header Kelas: Kompak & Sejajar */}
+        <div className="border-b border-line pb-5">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+              <h1 className="font-heading text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+                {cls.name}
+              </h1>
+              {cls.description ? (
+                <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
+                  {cls.description}
+                </p>
+              ) : null}
+              <div className="mt-2.5 flex items-center gap-3 text-xs text-muted">
+                <span>Dibuat: {formatDate(cls.createdAt)}</span>
+                <span className="text-line">•</span>
+                <span>{members.length} Murid Terdaftar</span>
+              </div>
             </div>
-          </div>
 
-          <div className="shrink-0 flex items-center gap-3">
-            <DeleteClassModal
-              classId={classId}
-              className={cls.name}
-              studentCount={members.length}
-              materialCount={materialsList?.length ?? 0}
-              csrfToken={session.csrfToken}
-            />
-            <Button variant="primary" size="md" asChild>
-              <Link href={`/guru/kelas/${classId}/materi/baru`}>
-                <Plus className="size-4" aria-hidden="true" />
-                <span>Tambah Materi</span>
-              </Link>
-            </Button>
+            <div className="flex shrink-0 items-center gap-2.5">
+              <DeleteClassModal
+                classId={classId}
+                className={cls.name}
+                studentCount={members.length}
+                materialCount={materialsList?.length ?? 0}
+                csrfToken={session.csrfToken}
+              />
+              <Button variant="primary" size="md" asChild className="h-10 px-4.5 font-semibold shadow-xs">
+                <Link href={`/guru/kelas/${classId}/materi/baru`}>
+                  <Plus className="size-4" aria-hidden="true" />
+                  <span>Tambah Materi</span>
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Join Code Panel */}
-        <div className="mt-8">
-          <JoinCodePanel
-            classId={classId}
-            joinCode={cls.joinCode}
-            csrfToken={session.csrfToken}
-          />
-        </div>
+        <JoinCodePanel
+          classId={classId}
+          joinCode={cls.joinCode}
+          csrfToken={session.csrfToken}
+        />
 
         {/* Tabs: Materi & Anggota */}
-        <div className="mt-10">
+        <div className="pt-2">
           <Tabs defaultValue="materi">
             <TabsList>
               <TabsTrigger value="materi">
@@ -109,18 +106,15 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
             <TabsContent value="materi">
               {!materialsList || materialsList.length === 0 ? (
-                <div className="card-lift rounded-[20px] p-12 text-center">
-                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-surface-subtle text-ink border border-line shadow-xs">
-                    <FileText className="size-7" aria-hidden="true" />
-                  </div>
-                  <h3 className="mt-5 font-heading text-lg font-bold text-ink">
+                <div className="rounded-2xl border border-line bg-surface p-12 text-center shadow-xs">
+                  <h3 className="font-heading text-lg font-bold text-ink">
                     Belum Ada Materi Pelajaran
                   </h3>
-                  <p className="mx-auto mt-2 max-w-md text-sm text-muted leading-relaxed">
-                    Unggah dokumen PDF atau tempel teks materi. Anda dapat meninjau dan mengedit adaptasi multi-modal sebelum menerbitkannya ke murid.
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
+                    Unggah dokumen PDF atau tempel teks materi. Anda dapat meninjau dan mengedit adaptasi sebelum menerbitkannya ke murid.
                   </p>
                   <div className="mt-6">
-                    <Button variant="primary" size="md" asChild className="h-11 px-5 cursor-pointer">
+                    <Button variant="primary" size="md" asChild className="h-10 px-5 font-semibold shadow-xs cursor-pointer">
                       <Link href={`/guru/kelas/${classId}/materi/baru`}>
                         <Plus className="size-4" aria-hidden="true" />
                         <span>Tambah Materi Sekarang</span>
@@ -129,55 +123,59 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                   {materialsList.map((mat) => (
                     <div
                       key={mat.id}
-                      className="card-lift group relative overflow-hidden flex flex-col justify-between gap-4 rounded-[18px] p-5 sm:flex-row sm:items-center sm:p-6"
+                      className="group relative flex flex-col justify-between gap-4 rounded-2xl border border-line bg-surface p-5 shadow-xs transition-all duration-200 hover:border-primary/40 hover:shadow-md sm:flex-row sm:items-center"
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-surface-subtle text-ink border border-line shadow-2xs mt-0.5">
-                          <BookOpen className="size-5" aria-hidden="true" />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-semibold text-muted">
-                              {mat.subject}
+                      <div className="space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-medium text-muted">
+                            {mat.subject}
+                          </span>
+                          {mat.isPublished ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-medium text-ink">
+                              <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
+                              <span>Terbit untuk Murid</span>
                             </span>
-                            {mat.isPublished ? (
-                              <span className="rounded-md bg-emerald-subtle border border-emerald-border/60 px-2 py-0.5 text-xs font-semibold text-emerald">
-                                Terbit untuk Murid
-                              </span>
-                            ) : (
-                              <span className="rounded-md bg-amber-subtle border border-amber-border/60 px-2 py-0.5 text-xs font-semibold text-amber">
-                                Draf Tersimpan
-                              </span>
-                            )}
-                          </div>
-                          <h3 className="font-heading text-lg font-bold text-ink transition-colors group-hover:text-primary">
-                            {mat.title}
-                          </h3>
-                          {mat.description ? (
-                            <p className="text-sm text-muted line-clamp-1">
-                              {mat.description}
-                            </p>
-                          ) : null}
-                          <p className="text-xs text-muted pt-0.5">
-                            Dibuat pada {formatDate(mat.createdAt)}
-                          </p>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-line bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+                              <span className="size-1.5 rounded-full bg-muted/60" aria-hidden="true" />
+                              <span>Draf Tersimpan</span>
+                            </span>
+                          )}
                         </div>
+                        <h3 className="font-heading text-lg font-bold text-ink transition-colors group-hover:text-primary">
+                          <Link href={`/guru/materi/${mat.id}`} className="focus-visible:outline-focus">
+                            {mat.title}
+                          </Link>
+                        </h3>
+                        {mat.description ? (
+                          <p className="line-clamp-1 text-sm text-muted">
+                            {mat.description}
+                          </p>
+                        ) : null}
+                        <p className="text-xs text-muted">
+                          Dibuat pada {formatDate(mat.createdAt)}
+                        </p>
                       </div>
 
-                      <div className="shrink-0 flex items-center gap-2">
+                      <div className="flex shrink-0 items-center gap-2 self-start sm:self-center">
                         <DeleteMaterialModal
                           materialId={mat.id}
                           materialTitle={mat.title}
                           csrfToken={session.csrfToken}
                         />
-                        <Button variant={mat.isPublished ? "secondary" : "primary"} size="sm" asChild className="h-9 px-4 font-semibold cursor-pointer">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          asChild
+                          className="h-8.5 px-3.5 text-xs font-semibold cursor-pointer group-hover:border-primary-border group-hover:text-primary"
+                        >
                           <Link href={`/guru/materi/${mat.id}`}>
                             <span>{mat.isPublished ? "Lihat & Edit" : "Tinjau Draf"}</span>
-                            <ChevronRight className="size-4" aria-hidden="true" />
+                            <ChevronRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                           </Link>
                         </Button>
                       </div>
@@ -189,11 +187,8 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
             <TabsContent value="anggota">
               {members.length === 0 ? (
-                <div className="card-lift rounded-[20px] p-12 text-center">
-                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-surface-subtle text-ink border border-line shadow-xs">
-                    <Users className="size-7" aria-hidden="true" />
-                  </div>
-                  <h3 className="mt-5 font-heading text-lg font-bold text-ink">
+                <div className="rounded-2xl border border-line bg-surface p-12 text-center shadow-xs">
+                  <h3 className="font-heading text-lg font-bold text-ink">
                     Belum Ada Murid Terdaftar
                   </h3>
                   <p className="mx-auto mt-2 max-w-md text-sm text-muted leading-relaxed">
@@ -201,21 +196,21 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
                   </p>
                 </div>
               ) : (
-                <div className="card-lift overflow-hidden rounded-[18px]">
+                <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
                   <table className="w-full text-left text-sm">
                     <thead className="border-b border-line bg-surface-subtle/80 text-xs font-semibold uppercase tracking-wider text-muted">
                       <tr>
-                        <th className="px-6 py-4">Nama Murid</th>
-                        <th className="px-6 py-4">Waktu Bergabung</th>
+                        <th className="px-6 py-3.5">Nama Murid</th>
+                        <th className="px-6 py-3.5">Waktu Bergabung</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
                       {members.map((m) => (
                         <tr key={m.id} className="transition-colors hover:bg-surface-subtle/50">
-                          <td className="px-6 py-4 font-medium text-ink">
+                          <td className="px-6 py-3.5 font-medium text-ink">
                             {m.displayName}
                           </td>
-                          <td className="px-6 py-4 text-muted">
+                          <td className="px-6 py-3.5 text-muted">
                             <span className="inline-flex items-center gap-1.5 text-xs">
                               <Clock className="size-3.5" aria-hidden="true" />
                               {formatDate(m.joinedAt)}
@@ -234,3 +229,4 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
     </DashboardLayout>
   );
 }
+

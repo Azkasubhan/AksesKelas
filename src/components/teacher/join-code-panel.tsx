@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Check, RefreshCw, KeyRound } from "lucide-react";
+import { Copy, Check, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -51,26 +51,19 @@ export function JoinCodePanel({ classId, joinCode, csrfToken }: JoinCodePanelPro
   }
 
   return (
-    <div className="relative overflow-hidden flex flex-col gap-4 rounded-[18px] border border-line bg-surface p-5 shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-6">
-      <div className="relative z-10 flex items-start sm:items-center gap-4">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-surface-subtle text-muted border border-line shadow-xs">
-          <KeyRound className="size-5" aria-hidden="true" />
+    <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 sm:px-6 sm:py-5.5 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+          Kode Akses Bergabung Kelas
+        </span>
+        <div className="mt-1 flex items-center gap-2.5">
+          <span className="font-mono text-2xl font-bold tracking-wider text-ink sm:text-3xl">
+            {formatJoinCode(joinCode)}
+          </span>
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Kode Akses Bergabung Kelas
-            </span>
-          </div>
-          <div className="mt-1 flex items-center gap-2.5">
-            <span className="font-mono text-2xl font-bold tracking-widest text-ink">
-              {formatJoinCode(joinCode)}
-            </span>
-          </div>
-          <p className="mt-0.5 text-xs text-muted">
-            Bagikan kode ini kepada murid agar dapat mengakses materi pembelajaran di kelas ini.
-          </p>
-        </div>
+        <p className="mt-1 text-xs text-muted">
+          Bagikan kode ini kepada murid agar dapat mengakses materi pembelajaran di kelas ini.
+        </p>
       </div>
 
       <div className="flex items-center gap-2 self-start sm:self-center">
@@ -79,12 +72,12 @@ export function JoinCodePanel({ classId, joinCode, csrfToken }: JoinCodePanelPro
           size="sm"
           onClick={handleCopy}
           aria-label="Salin kode bergabung"
-          className="font-medium"
+          className="font-medium cursor-pointer"
         >
           {copied ? (
             <>
-              <Check className="size-3.5 text-success" aria-hidden="true" />
-              <span className="text-success">Tersalin</span>
+              <Check className="size-3.5 text-primary" aria-hidden="true" />
+              <span className="text-primary font-semibold">Tersalin</span>
             </>
           ) : (
             <>
@@ -99,7 +92,7 @@ export function JoinCodePanel({ classId, joinCode, csrfToken }: JoinCodePanelPro
             <Button
               variant="ghost"
               size="sm"
-              className="text-muted hover:text-ink font-medium"
+              className="text-muted hover:text-ink font-medium cursor-pointer"
               aria-label="Ganti kode bergabung kelas"
             >
               <RefreshCw className="size-3.5" aria-hidden="true" />
@@ -126,6 +119,7 @@ export function JoinCodePanel({ classId, joinCode, csrfToken }: JoinCodePanelPro
                 size="md"
                 onClick={handleRotate}
                 disabled={loading}
+                className="gap-2 font-semibold"
               >
                 {loading ? "Memperbarui…" : "Ya, Ganti Kode"}
               </Button>
@@ -136,3 +130,4 @@ export function JoinCodePanel({ classId, joinCode, csrfToken }: JoinCodePanelPro
     </div>
   );
 }
+

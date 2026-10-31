@@ -491,12 +491,14 @@ export function TeacherDraftReviewClient({
                   {draft.className} • {draft.materialSubject}
                 </span>
                 {draft.isPublished ? (
-                  <span className="shrink-0 rounded bg-emerald-subtle px-1.5 py-0.5 text-[11px] font-semibold text-emerald">
-                    Terbit
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface-subtle/80 px-2 py-0.5 text-xs font-medium text-ink">
+                    <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
+                    <span>Terbit</span>
                   </span>
                 ) : (
-                  <span className="shrink-0 rounded bg-amber-subtle px-1.5 py-0.5 text-[11px] font-semibold text-amber">
-                    Draf R{draft.revision}
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-dashed border-line bg-surface px-2 py-0.5 text-xs font-medium text-muted">
+                    <span className="size-1.5 rounded-full bg-muted/60" aria-hidden="true" />
+                    <span>Draf</span>
                   </span>
                 )}
               </div>
@@ -641,7 +643,6 @@ export function TeacherDraftReviewClient({
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-primary">
                   Bagian {sectionIdx + 1} dari {total}
-                  <span className="ml-2 font-mono font-normal text-muted">R{sec.revision}</span>
                 </p>
 
                 {editingSectionId === sec.id ? (
@@ -677,9 +678,9 @@ export function TeacherDraftReviewClient({
               <div className="shrink-0">
                 {isApproved && approval ? (
                   <div className="inline-flex items-center gap-2 text-xs text-muted">
-                    <span className="inline-flex items-center gap-1 rounded-btn bg-emerald-subtle px-2.5 py-1.5 font-semibold text-emerald">
-                      <Check className="size-3.5" aria-hidden="true" />
-                      Disetujui
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-subtle/80 px-2.5 py-1 text-xs font-medium text-ink">
+                      <Check className="size-3.5 text-primary" aria-hidden="true" />
+                      <span>Disetujui</span>
                     </span>
                     <span>{formatDate(approval.reviewedAt)}</span>
                   </div>
@@ -734,7 +735,7 @@ export function TeacherDraftReviewClient({
                 <div className="p-5 sm:p-6">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold text-muted">
-                      Sumber ({source.inputType.toUpperCase()} · Revisi {source.revisionNumber})
+                      Sumber Dokumen ({source.inputType.toUpperCase()})
                     </p>
                     {sourceConfirmed ? (
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald">
