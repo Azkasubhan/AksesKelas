@@ -22,6 +22,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RichText } from "@/components/reader/rich-text";
 import { DeleteMaterialModal } from "@/components/teacher/delete-material-modal";
 import { AiProcessingModal } from "@/components/teacher/ai-processing-modal";
 import { toast } from "@/components/ui/toast";
@@ -975,9 +976,9 @@ export function TeacherDraftReviewClient({
                         </div>
                       </div>
                     ) : (
-                      <div className="max-h-[46vh] space-y-3 overflow-y-auto pr-2 text-sm leading-[1.75] text-ink">
+                      <div className="max-h-[46vh] space-y-4 overflow-y-auto pr-2 text-sm leading-[1.75] text-ink">
                         {sec.standard.map((std, sIdx) => (
-                          <p key={sIdx}>{std.text}</p>
+                          <RichText key={sIdx} text={std.text} />
                         ))}
                       </div>
                     ))}
@@ -1136,110 +1137,6 @@ export function TeacherDraftReviewClient({
   );
 }
 
-function getHighlightRanges(
-  fullText: string,
-  target?: string,
-): { start: number; end: number }[] {
-  if (!target || !target.trim()) return [];
-
-  const cleanTarget = target.trim();
-
-  // 1. Pencarian kecocokan persis (exact match)
-  const exactIdx = fullText.indexOf(cleanTarget);
-  if (exactIdx !== -1) {
-    return [{ start: exactIdx, end: exactIdx + cleanTarget.length }];
-  }
-
-  // 2. Pencarian fleksibel spasi/whitespace
-  try {
-    const escaped = cleanTarget.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regexPattern = escaped.replace(/\s+/g, "\\s+");
-    const regex = new RegExp(regexPattern, "i");
-    const match = regex.exec(fullText);
-    if (match && match.index !== undefined) {
-      return [{ start: match.index, end: match.index + match[0].length }];
-    }
-  } catch {
-    // fallback jika regex gagal
-  }
-
-  // 3. Pencarian berbasis kalimat jika target teks panjang/gabungan klausa
-  const sentences = cleanTarget
-    .split(/(?<=[.!?])\s+|\s*;\s*dan\s+|\s*;\s*/)
-    .map((s) => s.trim())
-    .filter((s) => s.length >= 15);
-
-  const ranges: { start: number; end: number }[] = [];
-
-  for (const sentence of sentences) {
-    try {
-      const escaped = sentence.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
-      const regex = new RegExp(escaped, "i");
-      const match = regex.exec(fullText);
-      if (match && match.index !== undefined) {
-        ranges.push({ start: match.index, end: match.index + match[0].length });
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  if (ranges.length > 0) {
-    ranges.sort((a, b) => a.start - b.start);
-    const merged: { start: number; end: number }[] = [ranges[0]];
-    for (let i = 1; i < ranges.length; i++) {
-      const last = merged[merged.length - 1];
-      const cur = ranges[i];
-      if (cur.start <= last.end + 5) {
-        last.end = Math.max(last.end, cur.end);
-      } else {
-        merged.push(cur);
-      }
-    }
-    return merged;
-  }
-
-  return [];
-}
-
-function HighlightedSourceText({
-  text,
-  highlight,
-}: {
-  text: string;
-  highlight?: string;
-}) {
-  const ranges = React.useMemo(() => getHighlightRanges(text, highlight), [text, highlight]);
-
-  if (!ranges.length) {
-    return <span>{text}</span>;
-  }
-
-  const nodes: React.ReactNode[] = [];
-  let lastIndex = 0;
-
-  ranges.forEach((range, idx) => {
-    if (range.start > lastIndex) {
-      nodes.push(text.slice(lastIndex, range.start));
-    }
-    nodes.push(
-      <mark
-        key={idx}
-        className="rounded bg-emerald-subtle px-1.5 py-0.5 font-medium text-ink border border-emerald-border/80 shadow-xs"
-        title="Bagian teks sumber yang diadaptasikan menjadi kartu fokus ini"
-      >
-        {text.slice(range.start, range.end)}
-      </mark>,
-    );
-    lastIndex = range.end;
-  });
-
-  if (lastIndex < text.length) {
-    nodes.push(text.slice(lastIndex));
-  }
-
-  return <span>{nodes}</span>;
-}
 
 function SourceBlocks({
   blocks,
@@ -1266,9 +1163,9 @@ function SourceBlocks({
               </span>
             ) : null}
           </div>
-          <p className="mt-1 text-sm leading-[1.75] text-ink/85">
-            <HighlightedSourceText text={b.text} highlight={highlightText} />
-          </p>
+          <div className="mt-1 text-sm leading-[1.75] text-ink/85">
+            <RichText text={b.text} highlight={highlightText} />
+          </div>
         </div>
       ))}
     </div>

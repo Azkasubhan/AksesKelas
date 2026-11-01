@@ -46,8 +46,13 @@ export function splitParagraphsIntoBlocks(
   text: string,
   pageNumber: number | null = 1,
 ): ParsedBlock[] {
-  const normalized = normalizeSourceText(text);
+  let normalized = normalizeSourceText(text);
   if (!normalized) return [];
+
+  // Sisipkan jeda paragraf ganda pada batas Bagian/Bab dan sub-topik agar tidak menyatu dengan kalimat teks
+  normalized = normalized
+    .replace(/(^|\n)(BAGIAN\s+[0-9IVXLCDM]+(?:\s*[/:\-]\s*[^\n]+)?)\n(?=\S)/gi, "$1\n\n$2\n\n")
+    .replace(/(^|\n)(\d{1,2}[.)]\s+[A-Z][^\n]+?\?)\n(?=\S)/g, "$1\n\n$2\n\n");
 
   // Pisahkan berdasarkan paragraf kosong ganda
   const rawParagraphs = normalized.split(/\n\s*\n+/);
