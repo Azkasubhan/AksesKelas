@@ -21,6 +21,7 @@ import {
   Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RichText } from "@/components/reader/rich-text";
 import { apiFetch } from "@/lib/api-client";
 import {
   detectLanguage,
@@ -924,11 +925,15 @@ export function StudentReaderClient({
                     {currentCardItem.card.title}
                   </h2>
 
-                  <p style={{ lineHeight }} className={`transition-all duration-150 ${cardTheme.body}`}>
-                    {easyRead
-                      ? currentCardItem.card.easyText
-                      : currentCardItem.card.originalText}
-                  </p>
+                  <RichText
+                    text={
+                      easyRead
+                        ? currentCardItem.card.easyText
+                        : currentCardItem.card.originalText
+                    }
+                    lineHeight={lineHeight}
+                    className={`transition-all duration-150 ${cardTheme.body}`}
+                  />
                 </div>
 
                 {/* Navigasi Kartu Sebelumnya / Selanjutnya */}
@@ -1026,17 +1031,20 @@ export function StudentReaderClient({
                     {easyRead ? (
                       <div className={paragraphGapClass}>
                         {sec.easyRead.map((er, idx) => (
-                          <p key={idx} style={{ lineHeight }} className="flex items-start gap-3 transition-all duration-150">
+                          <div key={idx} className="flex items-start gap-3 transition-all duration-150">
                             <span className={`mt-2.5 size-2 rounded-full shrink-0 ${cardTheme.easyReadDot}`} />
-                            <span style={{ lineHeight }}>{er.text}</span>
-                          </p>
+                            <RichText text={er.text} lineHeight={lineHeight} className="min-w-0 flex-1" />
+                          </div>
                         ))}
                       </div>
                     ) : (
                       sec.standard.map((std, idx) => (
-                        <p key={idx} style={{ lineHeight }} className="transition-all duration-150">
-                          {std.text}
-                        </p>
+                        <RichText
+                          key={idx}
+                          text={std.text}
+                          lineHeight={lineHeight}
+                          className="transition-all duration-150"
+                        />
                       ))
                     )}
                   </div>
