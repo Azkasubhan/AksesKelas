@@ -413,6 +413,11 @@ export function StudentReaderClient({
     },
   }[theme];
 
+  const richTextContrastClass =
+    theme === "high-contrast"
+      ? "[&_p]:!text-zinc-100 [&_li]:!text-zinc-100 [&_h3]:!text-white"
+      : "";
+
   const activeBadgeClasses = {
     light: "bg-primary-subtle text-primary border-primary/20",
     sepia: "bg-[#ebddc0] text-[#5c421e] border-[#DFCFA9]",
@@ -932,7 +937,7 @@ export function StudentReaderClient({
                         : currentCardItem.card.originalText
                     }
                     lineHeight={lineHeight}
-                    className={`transition-all duration-150 ${cardTheme.body}`}
+                    className={`transition-all duration-150 ${cardTheme.body} ${richTextContrastClass}`}
                   />
                 </div>
 
@@ -1033,7 +1038,7 @@ export function StudentReaderClient({
                         {sec.easyRead.map((er, idx) => (
                           <div key={idx} className="flex items-start gap-3 transition-all duration-150">
                             <span className={`mt-2.5 size-2 rounded-full shrink-0 ${cardTheme.easyReadDot}`} />
-                            <RichText text={er.text} lineHeight={lineHeight} className="min-w-0 flex-1" />
+                            <RichText text={er.text} lineHeight={lineHeight} className={`min-w-0 flex-1 ${richTextContrastClass}`} />
                           </div>
                         ))}
                       </div>
@@ -1043,7 +1048,7 @@ export function StudentReaderClient({
                           key={idx}
                           text={std.text}
                           lineHeight={lineHeight}
-                          className="transition-all duration-150"
+                          className={`transition-all duration-150 ${richTextContrastClass}`}
                         />
                       ))
                     )}
